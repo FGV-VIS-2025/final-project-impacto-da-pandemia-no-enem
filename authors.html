@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impacto da Pandemia no ENEM</title>
+  <script>
+    (function () {
+      try {
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+          document.documentElement.classList.add('dark-mode');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <ul>
+        <li><a href="index.html">Introdução</a></li>
+        <li><a href="project.html">Projeto</a></li>
+        <li><a href="authors.html">Autores</a></li>
+        <li><a href="https://github.com/FGV-VIS-2025/tarefa-4-impacto_da_pandemia_no_enem" target="_blank">GitHub</a></li>
+      </ul>
+      <select id="theme-select">
+        <option value="auto">🌗 Automático</option>
+        <option value="light">🌞 Claro</option>
+        <option value="dark">🌙 Escuro</option>
+      </select> 
+    </nav>
+  </header>
+
+  <main class="main-content">
+    <h1 class="main-title">Autores do Projeto</h1>
+    <p class="subtitle">Somos alunos de Ciência de Dados e Inteligência Artificial da FGV EMAp. <br>
+        Este projeto foi desenvolvido por nós como trabalho da disciplina de Visualização de Dados.</p>
+
+    <section class="authors-container">
+      <!-- Autor 1 -->
+      <div class="author-card">
+        <img src="./images/foto_guilherme.png">
+        <div class="author-info">
+          <h3>Guilherme Moreira Castilho </h3>
+          <p>Email: guilherme222castilho@gmail.com </p>
+          <p>Github: <a href="https://github.com/GuilhermeCastilho02" target="_blank">GuilhermeCastilho02</a>
+        </div>
+      </div>
+
+      <!-- Autor 2 -->
+      <div class="author-card">
+        <img src="./images/foto_paulo.png">
+        <div class="author-info">
+          <h3>Paulo César Gomes Rodrigues</h3>
+          <p>Email: pcgomes137@gmail.com </p>
+          <p>Github: <a href="https://github.com/paulocgr9" target="_blank">paulocgr9</a>
+        </div>
+      </div>
+
+      <!-- Autor 3 -->
+      <div class="author-card">
+        <img src="./images/foto_samuel.png">
+        <div class="author-info">
+          <h3>Samuel Corrêa Lima</h3>
+          <p>Email: samuelsslmr@gmail.com</p>
+          <p>Github: <a href="https://github.com/samullima" target="_blank">samullima</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
