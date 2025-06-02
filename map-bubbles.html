@@ -3,6 +3,18 @@
 <head>
     <meta charset="utf-8">
     <title>Mapa do Brasil com Bolhas</title>
+    <script>
+        (function () {
+        try {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            document.documentElement.classList.add('dark-mode');
+            }
+        } catch (e) {}
+        })();
+    </script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         body {
@@ -62,7 +74,7 @@
 
         #mapa {
             width: 80%;
-            max-width: 1000px;
+            max-width: 800px;
         }
 
         .bar-chart-container {
@@ -85,6 +97,11 @@
             width: 100%;
             height: 100%;
         }
+
+        .selected {
+            stroke-width: 3px !important;
+        }
+
     </style>
 
     <link rel="stylesheet" href="styles.css">
@@ -170,6 +187,46 @@
     </div>
 
     <script>
+    /* Alteração para outros temas */
+    const themeSelect = document.getElementById('theme-select');
+
+    // Aplicação do tema escuro
+    function applyTheme(theme) {
+        const root = document.documentElement;
+        root.classList.remove('dark-mode');
+
+        if (theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            root.classList.add('dark-mode');
+        }
+
+        localStorage.setItem('theme', theme);
+    }
+
+    // Quando o usuário muda a seleção
+    themeSelect.addEventListener('change', () => {
+        applyTheme(themeSelect.value);
+    });
+
+    // Define o tema inicial ao carregar a página
+    window.addEventListener('DOMContentLoaded', () => {
+        const saved = localStorage.getItem('theme') || 'auto';
+        themeSelect.value = saved;
+        applyTheme(saved);
+    });
+
+    // Se o usuário está no modo automático e o sistema muda de cor
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        const current = localStorage.getItem('theme');
+        if (current === 'auto') {
+            applyTheme('auto');
+        }
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("variable1").selectedIndex = 0;
+        document.getElementById("variable2").selectedIndex = 0;
+    });  
+
     // Tamanho do SVG
     const width = 1000;
     const height = 700;
@@ -238,14 +295,34 @@
         }
 
         // Desenha o mapa
-        mapaGroup
+                mapaGroup
             .selectAll("path")
             .data(mapa.features)
             .join("path")
             .attr("d", path)
-            .attr("fill", "#f0f0f0")
-            .attr("stroke", "#aaa")
-            .attr("stroke-width", 1);
+            .attr("fill", "#69b3a2")
+            .attr("stroke", "#333")
+            .attr("stroke-width", 1)
+            .on("mouseover", function(event, d) {
+                d3.select(this)
+                    .attr("stroke-width", 3 + "px") 
+
+            })
+            .on("mouseout", function() {
+                d3.select(this)
+                    .attr("fill", "#69b3a2")
+                    .attr("stroke", "#333")
+                    .attr("stroke-width", 1);
+            })
+            .on("click", function (event, d) {
+                    const current = d3.select(this);
+                    const isSelected = current.classed("selected");
+
+                    // Alterna a classe "selected"
+                    current.classed("selected", !isSelected)
+                        .transition().duration(300)
+                        .attr("stroke-width", !isSelected ? 3 : 1); // Aumenta o contorno se selecionado, volta ao normal se desmarcado
+                });
 
         // Escala de tamanho
         const maxVal = d3.max(Object.values(datasets).flat(), d => d.NUM_PARTICIPANTES);
@@ -274,7 +351,7 @@
                 })
                 .attr("r", 0)
                 .attr("fill", "steelblue")
-                .attr("opacity", 0.6)
+                .attr("opacity", 0.75)
                 .on("mouseover", function (event, d) {
                     tooltip
                     .style("visibility", "visible")
