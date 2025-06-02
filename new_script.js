@@ -187,6 +187,15 @@ Promise.all([
                 // boxPlot(selectedRegions, data2019Grouped, data2020Grouped);
                 // updateHeatMap(selectedRegions, data2019, data2020);
 
+                if (selectedRegions.length == 27) { 
+                    svgMap.selectAll("path")
+                          .classed("selected", false)
+                          .transition().duration(300)
+                          .attr("fill", "#69b3a2");
+                    
+                    selectedRegions = [];
+                };
+
                 if (selectedRegions.length > 0) {
                     document.getElementById("selected-regions").innerHTML = //TODO:Alterar sigla para nome ou tirar lower case
                       `<div class="selected-title">${selectedRegions.join(", <br>").toLowerCase()}</div>`;

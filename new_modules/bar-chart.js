@@ -3,7 +3,6 @@ import * as utils from "./utils.js";
 const {LOOKUP, width, height, margin, svg, y, barsGroup, tooltip} = utils;
 
 
-// Atualiza o gráfico com base na região selecionada
 export function barCharts(regions = [], column = "all", filteredCategory, data) {
 
     let colorScale = d3.schemeTableau10; 
@@ -18,11 +17,11 @@ export function barCharts(regions = [], column = "all", filteredCategory, data) 
 
     years.forEach((year, idx) => {
 
-    let filteredYearData = filteredData.filter(d => d.ANO === year);
-    const obj = { ano: year, total: d3.sum(filteredYearData, d => +d.QTD) };
+        let filteredYearData = filteredData.filter(d => d.ANO === year);
+        const obj = { ano: year, total: d3.sum(filteredYearData, d => +d.QTD) };
 
-    allCategories.forEach((category, index) => {
-        obj[column + index] = d3.sum(filteredYearData.filter(d => d[column] === category), d => +d.QTD);
+        allCategories.forEach((category, index) => {
+            obj[column + index] = d3.sum(filteredYearData.filter(d => d[column] === category), d => +d.QTD);
         });
 
         subscriptions.push(obj);
