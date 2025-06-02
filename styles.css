@@ -501,13 +501,16 @@ html.dark-mode .x-label {
 /*----------HeatMap----------*/
 #heatmaps {
     display: flex;
+    flex-direction: row;
     justify-content: center;
     align-items: flex-start;
     gap: 2rem;
     margin: 0.5rem auto;
-    max-width: 1000px;
+    max-width: 900px;
+    transform: scale(1);
+    transform-origin: top middle;
 }
- 
+
 .heatmap-wrapper {
     flex: 1 1 45%;
     max-width: 480px;
@@ -526,7 +529,10 @@ html.dark-mode .x-label {
 }
 
 #heatmap2019, 
-#heatmap2020 {
+#heatmap2020,
+#heatmap2021,
+#heatmap2022,
+#heatmap2023 {
     width: 100%;
     height: auto;
     min-width: 400px;

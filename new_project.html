@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,12 +14,13 @@
         if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
           document.documentElement.classList.add('dark-mode');
         }
-      } catch (e) {}
+      } catch (e) { }
     })();
   </script>
   <link rel="stylesheet" href="styles.css">
   <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
+
 <body>
   <header>
     <nav class="navbar">
@@ -27,13 +29,14 @@
         <li><a href="project.html">Projeto</a></li>
         <li><a href="new_project.html">Novo Projeto</a></li>
         <li><a href="authors.html">Autores</a></li>
-        <li><a href="https://github.com/FGV-VIS-2025/tarefa-4-impacto_da_pandemia_no_enem" target="_blank">GitHub</a></li>
+        <li><a href="https://github.com/FGV-VIS-2025/tarefa-4-impacto_da_pandemia_no_enem" target="_blank">GitHub</a>
+        </li>
       </ul>
       <select id="theme-select">
         <option value="auto">🌗 Automático</option>
         <option value="light">🌞 Claro</option>
         <option value="dark">🌙 Escuro</option>
-      </select>  
+      </select>
     </nav>
   </header>
 
@@ -49,7 +52,7 @@
           <div id="selected-regions"></div>
         </div>
       </div>
-  
+
       <!-- Coluna direita com gráficos e seções -->
       <div class="charts-pane">
         <section class="project-graphic">
@@ -77,7 +80,7 @@
           <br><br>
           <br><br>
         </section>
-  
+
         <section class="heatmap-container">
           <h2 id="heatmap-title">Quantidade de inscrições no ENEM por variáveis e regiões selecionadas</h2>
           <div>
@@ -112,7 +115,6 @@
               <option value="TP_ESCOLA">Tipo de escola</option>
             </select>
           </div>
-  
           <div id="heatmaps">
             <div class="heatmap-wrapper">
               <h3>2019</h3>
@@ -131,10 +133,12 @@
             <div class="heatmap-wrapper">
               <h3>2022</h3>
               <svg id="heatmap2022"></svg>
+            </div>
             <div class="heatmap-wrapper">
-              <h3>2023</h3> 
+              <h3>2023</h3>
               <svg id="heatmap2023"></svg>
             </div>
+          </div>
           <div id="colorbar">
             <svg id="colorbar"></svg>
           </div>
@@ -146,4 +150,5 @@
   <script type="module" src="new_script.js"></script>
 
 </body>
+
 </html>
