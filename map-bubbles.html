@@ -3,6 +3,18 @@
 <head>
     <meta charset="utf-8">
     <title>Mapa do Brasil com Bolhas</title>
+    <script>
+        (function () {
+          try {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+              document.documentElement.classList.add('dark-mode');
+            }
+          } catch (e) {}
+        })();
+    </script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         body {
@@ -171,6 +183,46 @@
     </div>
 
     <script>
+    /* Alteração para outros temas */
+    const themeSelect = document.getElementById('theme-select');
+
+    // Aplicação do tema escuro
+    function applyTheme(theme) {
+        const root = document.documentElement;
+        root.classList.remove('dark-mode');
+
+        if (theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            root.classList.add('dark-mode');
+        }
+
+        localStorage.setItem('theme', theme);
+    }
+
+    // Quando o usuário muda a seleção
+    themeSelect.addEventListener('change', () => {
+        applyTheme(themeSelect.value);
+    });
+
+    // Define o tema inicial ao carregar a página
+    window.addEventListener('DOMContentLoaded', () => {
+        const saved = localStorage.getItem('theme') || 'auto';
+        themeSelect.value = saved;
+        applyTheme(saved);
+    });
+
+    // Se o usuário está no modo automático e o sistema muda de cor
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        const current = localStorage.getItem('theme');
+        if (current === 'auto') {
+            applyTheme('auto');
+        }
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("variable1").selectedIndex = 0;
+        document.getElementById("variable2").selectedIndex = 0;
+    });    
+
     // Tamanho do SVG
     const width = 1000;
     const height = 700;
