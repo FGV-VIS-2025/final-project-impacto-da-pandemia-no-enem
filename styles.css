@@ -511,6 +511,7 @@ html.dark-mode .x-label {
 .heatmap-wrapper {
     flex: 1 1 45%;
     max-width: 480px;
+    max-height: 480px;
     text-align: center;
 }
 
