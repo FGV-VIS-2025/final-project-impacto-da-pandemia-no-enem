@@ -309,7 +309,7 @@
                     return y;
                 })
                 .attr("r", 0)
-                .attr("fill", "steelblue")
+                .attr("fill", "rgba(255, 255, 255, 0.8)")
                 .attr("opacity", 0.75)
                 .attr("opacity", 0.75)
                 .on("mouseover", function (event, d) {
@@ -392,6 +392,21 @@
         function boxplotStats(values) {
             values = values.filter(v => !isNaN(v)).sort(d3.ascending);
             if (values.length === 0) return null;
+
+            // Caso especial para apenas 1 valor
+            if (values.length === 1) {
+                const singleValue = values[0];
+                return {
+                    q1: singleValue,
+                    median: singleValue,
+                    q3: singleValue,
+                    iqr: 0,
+                    min: singleValue,
+                    max: singleValue,
+                    outliers: [],
+                    singleValue: singleValue  // Adicionamos um campo especial para este caso
+                };
+            }
             
             const q1 = d3.quantile(values, 0.25);
             const median = d3.quantile(values, 0.5);
@@ -424,7 +439,7 @@
             const height = containerHeight - margin.top - margin.bottom;
             
             svg.attr("width", containerWidth)
-               .attr("height", containerHeight);
+            .attr("height", containerHeight);
             
             const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
             
@@ -456,50 +471,111 @@
                 const stats = d.stats;
                 const xPos = x(d.uf) + x.bandwidth() / 2;
                 
-                // Linha vertical (min a max)
-                g.append("line")
-                    .attr("x1", xPos)
-                    .attr("x2", xPos)
-                    .attr("y1", y(stats.min))
-                    .attr("y2", y(stats.max))
-                    .attr("stroke", "#999")
-                    .attr("stroke-width", 1);
-                
-                // Caixa (Q1 a Q3)
-                g.append("rect")
-                    .attr("x", x(d.uf) + x.bandwidth() * 0.1)
-                    .attr("y", y(stats.q3))
-                    .attr("width", x.bandwidth() * 0.8)
-                    .attr("height", y(stats.q1) - y(stats.q3))
-                    .attr("fill", "#4e79a7")
-                    .attr("stroke", "#333")
-                    .attr("stroke-width", 1);
-                
-                // Linha da mediana
-                g.append("line")
-                    .attr("x1", x(d.uf) + x.bandwidth() * 0.1)
-                    .attr("x2", x(d.uf) + x.bandwidth() * 0.9)
-                    .attr("y1", y(stats.median))
-                    .attr("y2", y(stats.median))
-                    .attr("stroke", "#fff")
-                    .attr("stroke-width", 2);
-                
-                // Outliers
-                if (stats.outliers.length > 0) {
-                    g.selectAll(".outlier")
-                        .data(stats.outliers)
-                        .enter()
-                        .append("circle")
+                if (d.values.length === 1) {
+                    // Caso especial para UFs com apenas 1 valor (como DF)
+                    g.append("circle")
                         .attr("cx", xPos)
-                        .attr("cy", d => y(d))
+                        .attr("cy", y(stats.singleValue))
                         .attr("r", 3)
                         .attr("fill", "#e15759")
                         .attr("stroke", "#333")
-                        .attr("stroke-width", 0.5)
-                        .on("mouseover", function(event, outlierValue) {
+                        .attr("stroke-width", 1)
+                        .on("mouseover", function() {
                             d3.select("#tooltip-boxplot")
                                 .style("visibility", "visible")
-                                .html(`UF: ${d.uf}<br>Taxa de Presença: ${outlierValue.toFixed(2)}`);
+                                .html(`UF: ${d.uf}<br>Taxa de Presença: ${stats.singleValue.toFixed(2)}`);
+                        })
+                        .on("mousemove", function(event) {
+                            d3.select("#tooltip-boxplot")
+                                .style("top", (event.pageY - 10) + "px")
+                                .style("left", (event.pageX + 10) + "px");
+                        })
+                        .on("mouseout", function() {
+                            d3.select("#tooltip-boxplot").style("visibility", "hidden");
+                        });
+                    
+                    // Adiciona texto indicando que é um único valor
+                    g.append("text")
+                        .attr("x", xPos)
+                        .attr("y", y(stats.singleValue) - 10)
+                        .attr("text-anchor", "middle")
+                        .style("font-size", "10px")
+                        .style("fill", "#333")
+                } else {
+                    // Código original para boxplots normais (2+ valores)
+                    
+                    // Linha vertical (min a max)
+                    g.append("line")
+                        .attr("x1", xPos)
+                        .attr("x2", xPos)
+                        .attr("y1", y(stats.min))
+                        .attr("y2", y(stats.max))
+                        .attr("stroke", "#999")
+                        .attr("stroke-width", 1);
+                    
+                    // Caixa (Q1 a Q3)
+                    g.append("rect")
+                        .attr("x", x(d.uf) + x.bandwidth() * 0.1)
+                        .attr("y", y(stats.q3))
+                        .attr("width", x.bandwidth() * 0.8)
+                        .attr("height", y(stats.q1) - y(stats.q3))
+                        .attr("fill", "#4e79a7")
+                        .attr("stroke", "#333")
+                        .attr("stroke-width", 1);
+                    
+                    // Linha da mediana
+                    g.append("line")
+                        .attr("x1", x(d.uf) + x.bandwidth() * 0.1)
+                        .attr("x2", x(d.uf) + x.bandwidth() * 0.9)
+                        .attr("y1", y(stats.median))
+                        .attr("y2", y(stats.median))
+                        .attr("stroke", "#fff")
+                        .attr("stroke-width", 2);
+                    
+                    // Outliers
+                    if (stats.outliers.length > 0) {
+                        g.selectAll(".outlier")
+                            .data(stats.outliers)
+                            .enter()
+                            .append("circle")
+                            .attr("cx", xPos)
+                            .attr("cy", d => y(d))
+                            .attr("r", 3)
+                            .attr("fill", "#e15759")
+                            .attr("stroke", "#333")
+                            .attr("stroke-width", 0.5)
+                            .on("mouseover", function(event, outlierValue) {
+                                d3.select("#tooltip-boxplot")
+                                    .style("visibility", "visible")
+                                    .html(`UF: ${d.uf}<br>Taxa de Presença: ${outlierValue.toFixed(2)}`);
+                            })
+                            .on("mousemove", function(event) {
+                                d3.select("#tooltip-boxplot")
+                                    .style("top", (event.pageY - 10) + "px")
+                                    .style("left", (event.pageX + 10) + "px");
+                            })
+                            .on("mouseout", function() {
+                                d3.select("#tooltip-boxplot").style("visibility", "hidden");
+                            });
+                    }
+                    
+                    // Adicionar interatividade à caixa
+                    g.append("rect")
+                        .attr("x", x(d.uf) + x.bandwidth() * 0.1)
+                        .attr("y", y(stats.q3))
+                        .attr("width", x.bandwidth() * 0.8)
+                        .attr("height", y(stats.q1) - y(stats.q3))
+                        .attr("fill", "transparent")
+                        .on("mouseover", function() {
+                            d3.select("#tooltip-boxplot")
+                                .style("visibility", "visible")
+                                .html(`UF: ${d.uf}
+                                    Mínimo: ${stats.min.toFixed(2)}
+                                    Q1: ${stats.q1.toFixed(2)}
+                                    Mediana: ${stats.median.toFixed(2)}
+                                    Q3: ${stats.q3.toFixed(2)}
+                                    Máximo: ${stats.max.toFixed(2)}
+                                    N° de municípios: ${d.values.length}`);
                         })
                         .on("mousemove", function(event) {
                             d3.select("#tooltip-boxplot")
@@ -510,33 +586,6 @@
                             d3.select("#tooltip-boxplot").style("visibility", "hidden");
                         });
                 }
-                
-                // Adicionar interatividade à caixa
-                g.append("rect")
-                    .attr("x", x(d.uf) + x.bandwidth() * 0.1)
-                    .attr("y", y(stats.q3))
-                    .attr("width", x.bandwidth() * 0.8)
-                    .attr("height", y(stats.q1) - y(stats.q3))
-                    .attr("fill", "transparent")
-                    .on("mouseover", function() {
-                        d3.select("#tooltip-boxplot")
-                            .style("visibility", "visible")
-                            .html(`UF: ${d.uf}
-                                Mínimo: ${stats.min.toFixed(2)}
-                                Q1: ${stats.q1.toFixed(2)}
-                                Mediana: ${stats.median.toFixed(2)}
-                                Q3: ${stats.q3.toFixed(2)}
-                                Máximo: ${stats.max.toFixed(2)}
-                                N° de municípios: ${d.values.length}`);
-                    })
-                    .on("mousemove", function(event) {
-                        d3.select("#tooltip-boxplot")
-                            .style("top", (event.pageY - 10) + "px")
-                            .style("left", (event.pageX + 10) + "px");
-                    })
-                    .on("mouseout", function() {
-                        d3.select("#tooltip-boxplot").style("visibility", "hidden");
-                    });
             });
             
             // Eixo X com rotação
