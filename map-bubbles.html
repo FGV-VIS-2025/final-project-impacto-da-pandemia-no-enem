@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <title>Mapa do Brasil com Bolhas</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background-color: #ffffff;
+            font-family: sans-serif;
+        }
+
+        #controls {
+            text-align: center;
+            margin: 20px;
+        }
+
+        .tooltip {
+            position: absolute;
+            padding: 6px;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border-radius: 4px;
+            pointer-events: none;
+            visibility: hidden;
+            white-space: pre-line;
+        }
+
+        .tooltip-barras {
+            position: absolute;
+            padding: 6px;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border-radius: 4px;
+            pointer-events: none;
+            visibility: hidden;
+            white-space: pre-line;
+        }
+
+        #container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px;
+        }
+
+        #mapa svg {
+            width: 100%;
+            height: auto;
+        }
+
+        #graficos {
+            width: 30%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #mapa {
+            width: 80%;
+            max-width: 1000px;
+        }
+
+        .bar-chart-container {
+            width: 100%;
+            height: 300px;
+            padding: 1px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .bar-chart-title {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .bar-chart-container svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2 style="text-align: center;">Número de participantes no Enem no Brasil</h2>    
+
+<div id="tooltip" class="tooltip"></div>
+
+<div id="controls">
+    <label for="yearSlider">Ano: <span id="selectedYear">2019</span></label><br>
+    <input type="range" id="yearSlider" min="2019" max="2023" step="1" value="2019">
+</div>
+
+<div style="text-align: center; margin-top: 10px;">
+    <button id="playButton">▶️ Play</button>
+</div>
+
+<div style="
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+">
+    <strong>Nível de Participantes:</strong><br>
+    <div style="display: flex; align-items: center; margin-top: 5px;">
+        <div style="width: 8px; height: 8px; background-color: steelblue; border-radius: 50%; margin-right: 5px;"></div>
+        <span style="font-size: 12px;">Muito Baixo</span>
+    </div>
+    <div style="display: flex; align-items: center; margin-top: 5px;">
+        <div style="width: 15px; height: 15px; background-color: steelblue; border-radius: 50%; margin-right: 5px;"></div>
+        <span style="font-size: 12px;">Baixo</span>
+    </div>
+    <div style="display: flex; align-items: center; margin-top: 5px;">
+        <div style="width: 25px; height: 25px; background-color: steelblue; border-radius: 50%; margin-right: 5px;"></div>
+        <span style="font-size: 12px;">Médio</span>
+    </div>
+    <div style="display: flex; align-items: center; margin-top: 5px;">
+        <div style="width: 35px; height: 35px; background-color: steelblue; border-radius: 50%; margin-right: 5px;"></div>
+        <span style="font-size: 12px;">Alto</span>
+    </div>
+    <div style="display: flex; align-items: center; margin-top: 5px;">
+        <div style="width: 50px; height: 50px; background-color: steelblue; border-radius: 50%; margin-right: 5px;"></div>
+        <span style="font-size: 12px;">Muito Alto</span>
+    </div>
+</div>
+
+<div id="container">
+    <div id="mapa"></div>
+    <div id="graficos">
+        <div class="bar-chart-container" id="chart-MT">
+            <div class="bar-chart-title">Notas de Matemática</div>
+            <svg width="100%" height="90%"></svg>
+        </div>
+        <div class="bar-chart-container" id="chart-REDACAO">
+            <div class="bar-chart-title">Notas de Redação</div>
+            <svg width="100%" height="90%"></svg>
+        </div>
+    </div>
+</div>
+
+<script>
+// Tamanho do SVG
+const width = 1000;
+const height = 700;
+
+// Projeção centrada no Brasil
+const projection = d3.geoMercator()
+    .center([-54, -15]) // centro aproximado do Brasil
+    .scale(800)
+    .translate([width / 2, height / 2 - 65]);
+
+// Caminho geográfico
+const path = d3.geoPath().projection(projection);
+
+// Criar o SVG
+const svg = d3.select("#mapa")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+// Grupos para o mapa e bolhas
+const mapaGroup = svg.append("g");
+const bolhasGroup = svg.append("g");
+
+let dadosNotas = {};
+
+let currentYear = "2019";
+
+// Carrega o mapa e os dados
+Promise.all([
+    d3.json("https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson"),
+    d3.json("GeoJSON/estados_brasil.json"), // Seu arquivo com lat/long dos estados
+    d3.json("GeoJSON/uf_qtd_e_notas.json") // Seu arquivo com dados do ENEM
+]).then(([mapa, estados, enemData]) => {
+    // Organiza os dados do ENEM por ano e estado
+    enemData.forEach(item => {
+        if (!dadosNotas[item.NU_ANO]) {
+            dadosNotas[item.NU_ANO] = [];
+        }
+        dadosNotas[item.NU_ANO].push({
+            UF: item.SG_UF_PROVA,
+            QUANTIDADE_PESSOAS: item.QUANTIDADE_PESSOAS,
+            NU_NOTA_CN: item.NU_NOTA_CN,
+            NU_NOTA_CH: item.NU_NOTA_CH,
+            NU_NOTA_LC: item.NU_NOTA_LC,
+            NU_NOTA_MT: item.NU_NOTA_MT,
+            NU_NOTA_REDACAO: item.NU_NOTA_REDACAO
+        });
+    });
+
+    // Prepara os dados para as bolhas
+    const datasets = {};
+    
+    // Para cada ano (2019-2023)
+    for (let year = 2019; year <= 2023; year++) {
+        datasets[year] = estados.map(estado => {
+            const dadosEnem = dadosNotas[year].find(d => d.UF === estado.uf);
+            return {
+                uf: estado.uf,
+                nome: estado.nome,
+                lat: estado.latitude,
+                lon: estado.longitude,
+                regiao: estado.regiao,
+                NUM_PARTICIPANTES: dadosEnem ? dadosEnem.QUANTIDADE_PESSOAS : 0
+            };
+        });
+    }
+
+    // Desenha o mapa
+    mapaGroup
+        .selectAll("path")
+        .data(mapa.features)
+        .join("path")
+        .attr("d", path)
+        .attr("fill", "#f0f0f0")
+        .attr("stroke", "#aaa")
+        .attr("stroke-width", 1);
+
+    // Escala de tamanho
+    const maxVal = d3.max(Object.values(datasets).flat(), d => d.NUM_PARTICIPANTES);
+    const escalaRaio = d3.scaleSqrt()
+        .domain([0, maxVal])
+        .range([0, 30]);
+
+    const tooltip = d3.select("#tooltip");
+
+    // Função para atualizar bolhas
+    function updateBubbles(data) {
+        const bolhas = bolhasGroup.selectAll("circle")
+            .data(data, d => d.uf);
+
+        bolhas.join(
+            enter => enter.append("circle")
+            .attr("cx", d => {
+                const [x, y] = projection([d.lon, d.lat]);
+                d.originalX = x;  // guarda posição original
+                return x;
+            })
+            .attr("cy", d => {
+                const [x, y] = projection([d.lon, d.lat]);
+                d.originalY = y;
+                return y;
+            })
+            .attr("r", 0)
+            .attr("fill", "steelblue")
+            .attr("opacity", 0.6)
+            .on("mouseover", function (event, d) {
+                tooltip
+                .style("visibility", "visible")
+                .text(`Estado: ${d.nome} (${d.uf})\nRegião: ${d.regiao}\nNº de participantes: ${d.NUM_PARTICIPANTES.toLocaleString()}`);
+            })
+            .on("mousemove", function (event) {
+                tooltip
+                .style("top", (event.pageY - 10) + "px")
+                .style("left", (event.pageX + 10) + "px");
+            })
+            .on("mouseout", function () {
+                tooltip.style("visibility", "hidden");
+            })
+            .transition()
+            .duration(500)
+            .attr("r", d => escalaRaio(d.NUM_PARTICIPANTES)),
+
+            update => update
+            .on("mouseover", function (event, d) {
+                tooltip
+                .style("visibility", "visible")
+                .text(`Estado: ${d.nome} (${d.uf})\nRegião: ${d.regiao}\nNº de participantes: ${d.NUM_PARTICIPANTES.toLocaleString()}`);
+            })
+            .on("mousemove", function (event) {
+                tooltip
+                .style("top", (event.pageY - 10) + "px")
+                .style("left", (event.pageX + 10) + "px");
+            })
+            .on("mouseout", function () {
+                tooltip.style("visibility", "hidden");
+            })
+            .transition()
+            .duration(500)
+            .attr("r", d => escalaRaio(d.NUM_PARTICIPANTES))
+            .attr("cx", d => {
+                const [x, y] = projection([d.lon, d.lat]);
+                d.originalX = x;
+                d.originalY = y;
+                return x;
+            })
+            .attr("cy", d => d.originalY),
+
+            exit => exit
+            .transition()
+            .duration(500)
+            .attr("r", 0)
+            .remove()
+        );
+
+        // Atualiza os gráficos de barras
+        updateBarCharts(dadosNotas[currentYear]);
+        
+        // Inicia a flutuação após atualização
+        setTimeout(flutuarBolhas, 600);
+    }
+
+    function flutuarBolhas() {
+        bolhasGroup.selectAll("circle")
+            .transition()
+            .duration(2000)
+            .ease(d3.easeSinInOut)
+            .attr("cx", d => d.originalX + (Math.random() - 0.5) * 10) 
+            .attr("cy", d => d.originalY + (Math.random() - 0.5) * 10)
+            .on("end", flutuarBolhas); // repete o ciclo
+    }
+
+    function atualizarTooltipSeHover() {
+        const hovered = d3.select("circle:hover").data(); // pega os dados da bolha sob o mouse, se houver
+        if (hovered.length > 0) {
+            const d = hovered[0];
+            tooltip
+                .style("visibility", "visible")
+                .text(`Estado: ${d.nome} (${d.uf})\nRegião: ${d.regiao}\nNº de participantes: ${d.NUM_PARTICIPANTES.toLocaleString()}`);
+        }
+    }
+
+    function updateBarCharts(dadosNotasAno) {
+        const variaveis = [
+            {id: "MT", nome: "NU_NOTA_MT", titulo: "Matemática"},
+            {id: "REDACAO", nome: "NU_NOTA_REDACAO", titulo: "Redação"}
+        ];
+        
+        // Ordena por UF para consistência
+        dadosNotasAno.sort((a, b) => a.UF.localeCompare(b.UF));
+        
+        variaveis.forEach(v => {
+            const container = d3.select(`#chart-${v.id}`);
+            const svg = container.select("svg");
+            svg.selectAll("*").remove();
+            
+            const margin = {top: 20, right: 20, bottom: 170, left: 70};
+            const containerWidth = container.node().getBoundingClientRect().width;
+            const containerHeight = container.node().getBoundingClientRect().height;
+            
+            const width = containerWidth - margin.left - margin.right;
+            const height = containerHeight - margin.top - margin.bottom;
+            
+            svg.attr("width", containerWidth)
+              .attr("height", containerHeight);
+            
+            const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+            
+            // Escalas
+            const x = d3.scaleBand()
+                .domain(dadosNotasAno.map(d => d.UF))
+                .range([0, width])
+                .padding(0.2);
+            
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(dadosNotasAno, d => d[v.nome]) * 1.1])
+                .nice()
+                .range([height, 0]);
+            
+            // Barras
+            g.selectAll(".bar")
+                .data(dadosNotasAno)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", d => x(d.UF))
+                .attr("y", d => y(d[v.nome]))
+                .attr("width", x.bandwidth())
+                .attr("height", d => height - y(d[v.nome]))
+                .attr("fill", v.id === "MT" ? "#B22222" : "#DAA520") 
+                .attr("fill-opacity", 0.8)
+                .on("mouseover", function(event, d) {
+                    d3.select("#tooltip-barras")
+                        .style("visibility", "visible")
+                        .html(`Estado: ${d.UF}
+                            Média de ${v.titulo}: ${d[v.nome].toFixed(1)}
+                            N° de participantes: ${d.QUANTIDADE_PESSOAS.toLocaleString()}
+                        `);
+                })
+                .on("mousemove", function(event) {
+                    d3.select("#tooltip-barras")
+                        .style("top", (event.pageY - 10) + "px")
+                        .style("left", (event.pageX + 10) + "px");
+                })
+                .on("mouseout", function() {
+                    d3.select("#tooltip-barras").style("visibility", "hidden");
+                });
+            
+            // Eixo X com rotação
+            g.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "rotate(-45)")
+                .style("text-anchor", "end")
+                .style("font-size", "10px")
+                .attr("dx", "-0.5em")
+                .attr("dy", "0.5em");
+
+            // Título do eixo X
+            g.append("text")
+                .attr("transform", `translate(${width/2}, ${height + margin.bottom - 130})`)
+                .style("text-anchor", "middle")
+                .style("font-size", "12px")
+                .style("font-weight", "bold")
+                .text("Estado");    
+            
+            // Eixo Y
+            g.append("g")
+                .call(d3.axisLeft(y).ticks(5))
+                .style("font-size", "10px");
+            
+            // Adiciona título do eixo Y
+            g.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -margin.left + 10)
+                .attr("x", -height / 2)
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .style("font-size", "12px")
+                .style("font-weight", "bold")
+                .text("Nota Média");
+        });
+    }
+
+    // Slider
+    d3.select("#yearSlider").on("input", function () {
+        currentYear = this.value;
+        d3.select("#selectedYear").text(currentYear);
+        updateBubbles(datasets[currentYear]);
+    });
+
+    // Lógica para o botão play
+    let isPlaying = false;
+    let animationInterval = null;
+
+    const playButton = document.getElementById('playButton');
+    const yearSlider = document.getElementById('yearSlider');
+
+    playButton.addEventListener('click', () => {
+        if (isPlaying) {
+            // Pause
+            clearInterval(animationInterval);
+            playButton.textContent = '▶️ Play';
+            isPlaying = false;
+        } else {
+            // Play
+            isPlaying = true;
+            playButton.textContent = '⏸️ Pause';
+            
+            animationInterval = setInterval(() => {
+                // Avança o ano
+                let nextYear = parseInt(currentYear) + 1;
+                if (nextYear > 2023) nextYear = 2019;
+                
+                currentYear = nextYear.toString();
+                
+                yearSlider.value = currentYear;
+                document.getElementById('selectedYear').textContent = currentYear;
+                updateBubbles(datasets[currentYear]);
+                atualizarTooltipSeHover();
+            }, 1500);
+        }
+    });
+
+    // Inicializa com 2019
+    updateBubbles(datasets["2019"]);
+});
+</script>
+
+<div id="tooltip-barras" class="tooltip-barras"></div>
+
+</body>
+</html>
