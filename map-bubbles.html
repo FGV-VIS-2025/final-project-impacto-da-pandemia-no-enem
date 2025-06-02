@@ -3,18 +3,6 @@
 <head>
     <meta charset="utf-8">
     <title>Mapa do Brasil com Bolhas</title>
-    <script>
-        (function () {
-        try {
-            const savedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-            document.documentElement.classList.add('dark-mode');
-            }
-        } catch (e) {}
-        })();
-    </script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         body {
@@ -28,7 +16,7 @@
             margin: 20px;
         }
 
-        .tooltip {
+        .tooltip-map {
             position: absolute;
             padding: 6px;
             font-size: 14px;
@@ -40,7 +28,7 @@
             white-space: pre-line;
         }
 
-        .tooltip-barras {
+        .tooltip-boxplot {
             position: absolute;
             padding: 6px;
             font-size: 14px;
@@ -50,12 +38,13 @@
             pointer-events: none;
             visibility: hidden;
             white-space: pre-line;
+            text-align: left;
         }
 
         #container {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 0px;
             margin: 10px;
         }
 
@@ -65,34 +54,33 @@
         }
 
         #graficos {
-            width: 30%;
+            width: 40%;
             max-width: 800px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
         }
 
         #mapa {
-            width: 80%;
+            width: 60%;
             max-width: 800px;
         }
 
-        .bar-chart-container {
+        .boxplot-container {
             width: 100%;
-            height: 300px;
+            height: 600px;
             padding: 1px;
             box-sizing: border-box;
             position: relative;
         }
 
-        .bar-chart-title {
+        .boxplot-title {
             text-align: center;
-            font-size: 14px;
+            font-size: 16px;
             margin-bottom: 5px;
             font-weight: bold;
         }
 
-        .bar-chart-container svg {
+        .boxplot-container svg {
             display: block;
             width: 100%;
             height: 100%;
@@ -127,9 +115,9 @@
         </nav>
     </header>
 
-    <h2 style="text-align: center;">Desempenho dos participantes do Enem no Brasil</h2>    
+    <h2 style="text-align: center;">Quantidade de participantes do Enem no Brasil</h2>    
 
-    <div id="tooltip" class="tooltip"></div>
+    <div id="tooltip-map" class="tooltip-map"></div>
 
     <div id="controls">
         <label for="yearSlider">Ano: <span id="selectedYear">2019</span></label><br>
@@ -175,58 +163,13 @@
     <div id="container">
         <div id="mapa"></div>
         <div id="graficos">
-            <div class="bar-chart-container" id="chart-MT">
-                <div class="bar-chart-title">Notas de Matemática</div>
-                <svg width="100%" height="90%"></svg>
-            </div>
-            <div class="bar-chart-container" id="chart-REDACAO">
-                <div class="bar-chart-title">Notas de Redação</div>
+            <div class="boxplot-container" id="boxplot-presenca">
                 <svg width="100%" height="90%"></svg>
             </div>
         </div>
     </div>
 
     <script>
-    /* Alteração para outros temas */
-    const themeSelect = document.getElementById('theme-select');
-
-    // Aplicação do tema escuro
-    function applyTheme(theme) {
-        const root = document.documentElement;
-        root.classList.remove('dark-mode');
-
-        if (theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            root.classList.add('dark-mode');
-        }
-
-        localStorage.setItem('theme', theme);
-    }
-
-    // Quando o usuário muda a seleção
-    themeSelect.addEventListener('change', () => {
-        applyTheme(themeSelect.value);
-    });
-
-    // Define o tema inicial ao carregar a página
-    window.addEventListener('DOMContentLoaded', () => {
-        const saved = localStorage.getItem('theme') || 'auto';
-        themeSelect.value = saved;
-        applyTheme(saved);
-    });
-
-    // Se o usuário está no modo automático e o sistema muda de cor
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        const current = localStorage.getItem('theme');
-        if (current === 'auto') {
-            applyTheme('auto');
-        }
-    });
-
-    window.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("variable1").selectedIndex = 0;
-        document.getElementById("variable2").selectedIndex = 0;
-    });  
-
     // Tamanho do SVG
     const width = 1000;
     const height = 700;
@@ -251,6 +194,7 @@
     const bolhasGroup = svg.append("g");
 
     let dadosNotas = {};
+    let dadosPresenca = {}; // Armazenará os dados de presença por ano
 
     let currentYear = "2019";
 
@@ -258,8 +202,9 @@
     Promise.all([
         d3.json("https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson"),
         d3.json("GeoJSON/estados_brasil.json"), // Seu arquivo com lat/long dos estados
-        d3.json("GeoJSON/uf_qtd_e_notas.json") // Seu arquivo com dados do ENEM
-    ]).then(([mapa, estados, enemData]) => {
+        d3.json("GeoJSON/uf_qtd_e_notas.json"), // Seu arquivo com dados do ENEM
+        d3.csv("data/data_graph/taxa_presenca.csv") // Seu arquivo CSV com dados de presença
+    ]).then(([mapa, estados, enemData, presencaData]) => {
         // Organiza os dados do ENEM por ano e estado
         enemData.forEach(item => {
             if (!dadosNotas[item.NU_ANO]) {
@@ -274,6 +219,18 @@
                 NU_NOTA_MT: item.NU_NOTA_MT,
                 NU_NOTA_REDACAO: item.NU_NOTA_REDACAO
             });
+        });
+
+        // Organiza os dados de presença por ano e UF
+        presencaData.forEach(item => {
+            const ano = item.NU_ANO.toString();
+            if (!dadosPresenca[ano]) {
+                dadosPresenca[ano] = {};
+            }
+            if (!dadosPresenca[ano][item.SG_UF_PROVA]) {
+                dadosPresenca[ano][item.SG_UF_PROVA] = [];
+            }
+            dadosPresenca[ano][item.SG_UF_PROVA].push(parseFloat(item.PRESENCA));
         });
 
         // Prepara os dados para as bolhas
@@ -295,6 +252,7 @@
         }
 
         // Desenha o mapa
+                mapaGroup
                 mapaGroup
             .selectAll("path")
             .data(mapa.features)
@@ -330,7 +288,7 @@
             .domain([0, maxVal])
             .range([0, 30]);
 
-        const tooltip = d3.select("#tooltip");
+        const tooltip = d3.select("#tooltip-map");
 
         // Função para atualizar bolhas
         function updateBubbles(data) {
@@ -351,6 +309,7 @@
                 })
                 .attr("r", 0)
                 .attr("fill", "steelblue")
+                .attr("opacity", 0.75)
                 .attr("opacity", 0.75)
                 .on("mouseover", function (event, d) {
                     tooltip
@@ -401,8 +360,8 @@
                 .remove()
             );
 
-            // Atualiza os gráficos de barras
-            updateBarCharts(dadosNotas[currentYear]);
+            // Atualiza o boxplot
+            updateBoxplot(currentYear);
             
             // Inicia a flutuação após atualização
             setTimeout(flutuarBolhas, 600);
@@ -428,106 +387,200 @@
             }
         }
 
-        function updateBarCharts(dadosNotasAno) {
-            const variaveis = [
-                {id: "MT", nome: "NU_NOTA_MT", titulo: "Matemática"},
-                {id: "REDACAO", nome: "NU_NOTA_REDACAO", titulo: "Redação"}
-            ];
+        // Função para calcular estatísticas do boxplot
+        function boxplotStats(values) {
+            values = values.filter(v => !isNaN(v)).sort(d3.ascending);
+            if (values.length === 0) return null;
             
-            // Ordena por UF para consistência
-            dadosNotasAno.sort((a, b) => a.UF.localeCompare(b.UF));
+            const q1 = d3.quantile(values, 0.25);
+            const median = d3.quantile(values, 0.5);
+            const q3 = d3.quantile(values, 0.75);
+            const iqr = q3 - q1;
+            const min = Math.max(values[0], q1 - 1.5 * iqr);
+            const max = Math.min(values[values.length - 1], q3 + 1.5 * iqr);
             
-            variaveis.forEach(v => {
-                const container = d3.select(`#chart-${v.id}`);
-                const svg = container.select("svg");
-                svg.selectAll("*").remove();
+            return {
+                q1: q1,
+                median: median,
+                q3: q3,
+                iqr: iqr,
+                min: min,
+                max: max,
+                outliers: values.filter(v => v < min || v > max)
+            };
+        }
+
+        function updateBoxplot(year) {
+            const container = d3.select("#boxplot-presenca");
+            const svg = container.select("svg");
+            svg.selectAll("*").remove();
+            
+            const margin = {top: 40, right: 10, bottom: 150, left: 60};
+            const containerWidth = container.node().getBoundingClientRect().width;
+            const containerHeight = container.node().getBoundingClientRect().height;
+            
+            const width = containerWidth - margin.left - margin.right;
+            const height = containerHeight - margin.top - margin.bottom;
+            
+            svg.attr("width", containerWidth)
+               .attr("height", containerHeight);
+            
+            const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+            
+            // Obter UFs ordenadas
+            const ufs = Object.keys(dadosPresenca[year] || []).sort();
+            
+            // Preparar dados para o boxplot
+            const boxplotData = ufs.map(uf => {
+                const stats = boxplotStats(dadosPresenca[year][uf]);
+                return {
+                    uf: uf,
+                    values: dadosPresenca[year][uf],
+                    stats: stats
+                };
+            }).filter(d => d.stats !== null);
+            
+            // Escalas
+            const x = d3.scaleBand()
+                .domain(ufs)
+                .range([0, width])
+                .padding(0.2);
+            
+            const y = d3.scaleLinear()
+                .domain([0, 1]) // Taxa de presença vai de 0 a 1
+                .range([height, 0]);
+            
+            // Desenhar boxplots
+            boxplotData.forEach(d => {
+                const stats = d.stats;
+                const xPos = x(d.uf) + x.bandwidth() / 2;
                 
-                const margin = {top: 20, right: 20, bottom: 170, left: 70};
-                const containerWidth = container.node().getBoundingClientRect().width;
-                const containerHeight = container.node().getBoundingClientRect().height;
+                // Linha vertical (min a max)
+                g.append("line")
+                    .attr("x1", xPos)
+                    .attr("x2", xPos)
+                    .attr("y1", y(stats.min))
+                    .attr("y2", y(stats.max))
+                    .attr("stroke", "#999")
+                    .attr("stroke-width", 1);
                 
-                const width = containerWidth - margin.left - margin.right;
-                const height = containerHeight - margin.top - margin.bottom;
+                // Caixa (Q1 a Q3)
+                g.append("rect")
+                    .attr("x", x(d.uf) + x.bandwidth() * 0.1)
+                    .attr("y", y(stats.q3))
+                    .attr("width", x.bandwidth() * 0.8)
+                    .attr("height", y(stats.q1) - y(stats.q3))
+                    .attr("fill", "#4e79a7")
+                    .attr("stroke", "#333")
+                    .attr("stroke-width", 1);
                 
-                svg.attr("width", containerWidth)
-                .attr("height", containerHeight);
+                // Linha da mediana
+                g.append("line")
+                    .attr("x1", x(d.uf) + x.bandwidth() * 0.1)
+                    .attr("x2", x(d.uf) + x.bandwidth() * 0.9)
+                    .attr("y1", y(stats.median))
+                    .attr("y2", y(stats.median))
+                    .attr("stroke", "#fff")
+                    .attr("stroke-width", 2);
                 
-                const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+                // Outliers
+                if (stats.outliers.length > 0) {
+                    g.selectAll(".outlier")
+                        .data(stats.outliers)
+                        .enter()
+                        .append("circle")
+                        .attr("cx", xPos)
+                        .attr("cy", d => y(d))
+                        .attr("r", 3)
+                        .attr("fill", "#e15759")
+                        .attr("stroke", "#333")
+                        .attr("stroke-width", 0.5)
+                        .on("mouseover", function(event, outlierValue) {
+                            d3.select("#tooltip-boxplot")
+                                .style("visibility", "visible")
+                                .html(`UF: ${d.uf}<br>Taxa de Presença: ${outlierValue.toFixed(2)}`);
+                        })
+                        .on("mousemove", function(event) {
+                            d3.select("#tooltip-boxplot")
+                                .style("top", (event.pageY - 10) + "px")
+                                .style("left", (event.pageX + 10) + "px");
+                        })
+                        .on("mouseout", function() {
+                            d3.select("#tooltip-boxplot").style("visibility", "hidden");
+                        });
+                }
                 
-                // Escalas
-                const x = d3.scaleBand()
-                    .domain(dadosNotasAno.map(d => d.UF))
-                    .range([0, width])
-                    .padding(0.2);
-                
-                const y = d3.scaleLinear()
-                    .domain([0, d3.max(dadosNotasAno, d => d[v.nome]) * 1.1])
-                    .nice()
-                    .range([height, 0]);
-                
-                // Barras
-                g.selectAll(".bar")
-                    .data(dadosNotasAno)
-                    .enter().append("rect")
-                    .attr("class", "bar")
-                    .attr("x", d => x(d.UF))
-                    .attr("y", d => y(d[v.nome]))
-                    .attr("width", x.bandwidth())
-                    .attr("height", d => height - y(d[v.nome]))
-                    .attr("fill", v.id === "MT" ? "#B22222" : "#DAA520") 
-                    .attr("fill-opacity", 0.8)
-                    .on("mouseover", function(event, d) {
-                        d3.select("#tooltip-barras")
+                // Adicionar interatividade à caixa
+                g.append("rect")
+                    .attr("x", x(d.uf) + x.bandwidth() * 0.1)
+                    .attr("y", y(stats.q3))
+                    .attr("width", x.bandwidth() * 0.8)
+                    .attr("height", y(stats.q1) - y(stats.q3))
+                    .attr("fill", "transparent")
+                    .on("mouseover", function() {
+                        d3.select("#tooltip-boxplot")
                             .style("visibility", "visible")
-                            .html(`Estado: ${d.UF}
-                                Média de ${v.titulo}: ${d[v.nome].toFixed(1)}
-                                N° de participantes: ${d.QUANTIDADE_PESSOAS.toLocaleString()}
-                            `);
+                            .html(`UF: ${d.uf}
+                                Mínimo: ${stats.min.toFixed(2)}
+                                Q1: ${stats.q1.toFixed(2)}
+                                Mediana: ${stats.median.toFixed(2)}
+                                Q3: ${stats.q3.toFixed(2)}
+                                Máximo: ${stats.max.toFixed(2)}
+                                N° de municípios: ${d.values.length}`);
                     })
                     .on("mousemove", function(event) {
-                        d3.select("#tooltip-barras")
+                        d3.select("#tooltip-boxplot")
                             .style("top", (event.pageY - 10) + "px")
                             .style("left", (event.pageX + 10) + "px");
                     })
                     .on("mouseout", function() {
-                        d3.select("#tooltip-barras").style("visibility", "hidden");
+                        d3.select("#tooltip-boxplot").style("visibility", "hidden");
                     });
-                
-                // Eixo X com rotação
-                g.append("g")
-                    .attr("transform", `translate(0,${height})`)
-                    .call(d3.axisBottom(x))
-                    .selectAll("text")
-                    .attr("transform", "rotate(-45)")
-                    .style("text-anchor", "end")
-                    .style("font-size", "10px")
-                    .attr("dx", "-0.5em")
-                    .attr("dy", "0.5em");
-
-                // Título do eixo X
-                g.append("text")
-                    .attr("transform", `translate(${width/2}, ${height + margin.bottom - 130})`)
-                    .style("text-anchor", "middle")
-                    .style("font-size", "12px")
-                    .style("font-weight", "bold")
-                    .text("Estado");    
-                
-                // Eixo Y
-                g.append("g")
-                    .call(d3.axisLeft(y).ticks(5))
-                    .style("font-size", "10px");
-                
-                // Adiciona título do eixo Y
-                g.append("text")
-                    .attr("transform", "rotate(-90)")
-                    .attr("y", -margin.left + 10)
-                    .attr("x", -height / 2)
-                    .attr("dy", "1em")
-                    .style("text-anchor", "middle")
-                    .style("font-size", "12px")
-                    .style("font-weight", "bold")
-                    .text("Nota Média");
             });
+            
+            // Eixo X com rotação
+            g.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "rotate(-45)")
+                .style("text-anchor", "end")
+                .style("font-size", "10px")
+                .attr("dx", "-0.5em")
+                .attr("dy", "0.5em");
+
+            // Título do eixo X
+            g.append("text")
+                .attr("transform", `translate(${width/2}, ${height + margin.bottom - 100})`)
+                .style("text-anchor", "middle")
+                .style("font-size", "12px")
+                .style("font-weight", "bold")
+                .text("Unidade Federativa (UF)");    
+            
+            // Eixo Y
+            g.append("g")
+                .call(d3.axisLeft(y).ticks(5))
+                .style("font-size", "10px");
+            
+            // Adiciona título do eixo Y
+            g.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -margin.left + 10)
+                .attr("x", -height / 2)
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .style("font-size", "12px")
+                .style("font-weight", "bold")
+                .text("Taxa de Presença");
+            
+            // Adiciona título do gráfico
+            g.append("text")
+                .attr("x", width / 2)
+                .attr("y", -10)
+                .attr("text-anchor", "middle")
+                .style("font-size", "16px")
+                .style("font-weight", "bold")
+                .text(`Distribuição das Taxas de Presença por UF - ${year}`);
         }
 
         // Slider
@@ -575,7 +628,7 @@
     });
     </script>
 
-    <div id="tooltip-barras" class="tooltip-barras"></div>
+    <div id="tooltip-boxplot" class="tooltip-boxplot"></div>
 
 </body>
 </html>
