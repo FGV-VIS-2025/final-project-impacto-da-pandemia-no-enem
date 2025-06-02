@@ -66,7 +66,7 @@ Promise.all([
 
     barCharts([], "all", null, dataUF);
     // boxPlot([], data2019Grouped, data2020Grouped);
-    // updateHeatMap([], data2019, data2020);
+    updateHeatMap([]);
     
     let selectedRegions = [];
 
@@ -93,22 +93,22 @@ Promise.all([
               .transition().duration(300)
               .attr("fill", "#69b3a2");
 
-        // document.getElementById("variable1").selectedIndex = 0;
-        // document.getElementById("variable2").selectedIndex = 0;
+        document.getElementById("variable1").selectedIndex = 0;
+        document.getElementById("variable2").selectedIndex = 0;
 
-        // updateHeatMap([], data2019, data2020);
+        updateHeatMap([]);
         
         document.getElementById("selected-regions").textContent = "";
     });
     
     d3.select("#reset-button").style("display", "block");
 
-    // d3.select("#variable1").on("change", () => {
-    //     updateHeatMap([], data2019, data2020); 
-    // });
-    // d3.select("#variable2").on("change", () => {
-    //     updateHeatMap([], data2019, data2020); 
-    // });
+    d3.select("#variable1").on("change", () => {
+        updateHeatMap([]); 
+    });
+    d3.select("#variable2").on("change", () => {
+        updateHeatMap([]); 
+    });
 
     const containerMap = d3.select("#map-container")
     const widthMap = 800;
@@ -185,7 +185,7 @@ Promise.all([
 
                 barCharts(selectedRegions, column, null, data);
                 // boxPlot(selectedRegions, data2019Grouped, data2020Grouped);
-                // updateHeatMap(selectedRegions, data2019, data2020);
+                updateHeatMap(selectedRegions);
 
                 if (selectedRegions.length > 0) {
                     document.getElementById("selected-regions").innerHTML = //TODO:Alterar sigla para nome ou tirar lower case
