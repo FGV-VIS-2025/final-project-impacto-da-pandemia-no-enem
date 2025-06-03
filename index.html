@@ -39,7 +39,7 @@
     
     <main class="main-content">
         <h1 class="main-title">Pandemia VS ENEM</h1>
-        <p class="subtitle">Qual foi o impacto da pandemia no ENEM 2020 em Minas Gerais?</p>
+        <p class="subtitle">Qual foi o impacto da pandemia no ENEM no Brasil?</p>
 
         <section class="about-text">
             <h2>Introdução</h2>
@@ -54,23 +54,24 @@
                 anos de 2020 e 2021.
             </p>
             <p>
-                Este projeto busca analisar e visualizar dados do ENEM antes e durante a pandemia,
+                Este projeto busca analisar e visualizar dados do ENEM antes, durante e após a pandemia,
                 com o objetivo de entender melhor como o contexto sanitário afetou o exame e os
                 estudantes brasileiros. Para isso, projetamos uma série de visualizações interativas
-                que permitem explorar as diferenças entre o ENEM 2019 e o ENEM 2020 no estado de Minas Gerais.
+                que permitem explorar as diferenças entre os anos de 2019 e 2023 para todo o Brasil.
             </p>
 
             <h2>Metodologia</h2>
             <p>
-                Para a realização deste projeto, foram utilizadas duas bases de dados principais:
+                Para a realização deste projeto, foram utilizadas cinco bases de dados principais:
                 - Microdados do ENEM 2019: A fim de obter informações sobre a prova em um cenário pré-pandemia.
-                - Microdados do ENEM 2020: Para analisar o impacto da pandemia na prova.
-                Ambos os conjuntos de dados foram disponibilizados pelo INEP e podem ser acessados
+                - Microdados do ENEM 2020 e 2021: Para analisar o impacto da pandemia na prova.
+                - Microdados do ENEM 2022 e 2023: Para comparar com os anos anteriores e observar possíveis recuperações.
+                Todos os conjuntos de dados foram disponibilizados pelo INEP e podem ser acessados
                 <a href="https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enem" target="_blank">aqui</a>.
             </p>
             <p>
                 Além disso, é válido ressaltar que ambas as bases foram filtradas utilizando-se da biblioteca Pandas
-                do Python, de forma que contivessem apenas os dados do estado de Minas Gerais, alvo do nosso projeto.
+                para produzir multiplos dataframes que contém as informações necessárias para o desenvolvimento das visualizações.
             </p>
             <p>
                 Para o desenvolvimento das visualizações, utilizamos a biblioteca D3.js, que é amplamente utilizada para
@@ -78,18 +79,21 @@
             </p>
             <h2>Sobre as visualizações</h2>
             <p>
-                Todas as visualizações desenvolvidas podem ser encontradas na aba "Projeto" do nosso site.
+                Todas as visualizações desenvolvidas podem ser encontradas na aba "Projeto" e "Novo Projeto" do nosso site.
+                Como esse trabalho trata-se de uma sequência de um projeto anterior, a aba "Projeto" contém as visualizações
+                projetadas anteriormente visando somente o estado de Minas Gerais e os anos de 2019 e 2020. Enquanto isso, 
+                a aba "Novo Projeto" contém as visualizações atualizadas, referindo-se ao Brasil inteiro e aos anos de 2019 a 2023.
             </p>
             <p>
-                A primeira visualização consiste em um mapa interativo do estado de Minas Gerais. O mapa está dividido em 
-                mesorregiões. Ao clicar em uma mesorregião, todas as demais visualizações serão automaticamente filtradas
-                para que exibam somente os dados referentes àquela selecionada. Uma vez selecionadas, caso o usuário deseje
-                voltar a visualizar dados do estado inteiro, basta clicar no botão "Remover Filtros" no canto inferior esquerdo
+                A primeira visualização consiste em um mapa interativo do Brasil. O mapa está dividido em 
+                estados. Ao clicar em um estado, todas as demais visualizações serão automaticamente filtradas
+                para que exibam somente os dados referentes àquele selecionado. Uma vez selecionados, caso o usuário deseje
+                voltar a visualizar dados do país inteiro, basta clicar no botão "Remover Filtros" no canto inferior esquerdo
                 do mapa.
             </p>
             <p>
                 A segunda visualização consiste em um gráfico de barras que, a princípio, exibe a quantidade de inscrições ocorridas
-                no estado de Minas Gerais em 2019 e 2020. Próximo ao gráfico, há um botão que permite ao usuário selecionar uma
+                no Brasil entre 2019 e 2023. Próximo ao gráfico, há um botão que permite ao usuário selecionar uma
                 variável para ser visualizada. As variáveis disponíveis para seleção são:
                 <ul>
                     <li>Cor ou Raça</li>
@@ -104,23 +108,16 @@
                     <li>Tipo de escola</li>
                 </ul>
                 Ao selecionar uma variável, o gráfico de barras será atualizado para exibir a quantidade de inscrições ocorridas
-                em 2019 e 2020 para cada categoria da variável selecionada, formando um gráfico de barras agrupadas. Também é
+                entre 2019 e 2023 para cada categoria da variável selecionada, formando um gráfico de barras agrupadas. Também é
                 possível visualizar somente uma categoria específica da variável selecionada. Para isso, basta clicar na barra
                 ou no ítem da legenda correspondente à categoria desejada.
             <p>
-                A terceira visualização consiste em um boxplot que exibe as taxas médias por cidade de presença dos alunos nas
-                provas do ENEM 2019 e 2020. Ao selecionar uma mesorregião no mapa, o boxplot será filtrado para exibir dados
-                somente das cidades daquela mesorregião.
-            </p>
-            <p>
-                A quarta e última visualização consiste em um heatmap. A princípio, o heatmap exibe a quantidade total de inscrições
-                ocorridas no estado de Minas Gerais em cada ano. O usuário poderá, então, selecionar duas variáveis, uma para o 
-                eixo X e outra para o eixo Y, tendo acesso a análises cruzadas mais detalhadas para obter visões mais abrangentes. 
-                O heatmap passará a exibir a quantidade de inscrições ocorridas para cada combinação de variáveis selecionadas. As 
-                variáveis disponíveis para seleção são:
+                A terceira visualização consiste em um heatmap. A princípio, o heatmap está vazio. O usuário poderá, então, 
+                selecionar duas variáveis, uma para o eixo X e outra para o eixo Y, tendo acesso a análises cruzadas mais detalhadas 
+                para obter visões mais abrangentes. O heatmap passará a exibir a quantidade de inscrições ocorridas para cada combinação 
+                de variáveis selecionadas. As variáveis disponíveis para seleção são:
                 <ul>
                     <li>Cor ou Raça</li>
-
                     <li>Estado civil</li>
                     <li>Faixa etária</li>
                     <li>Localização da escola</li>
@@ -131,6 +128,12 @@
                     <li>Sexo</li>
                     <li>Tipo de escola</li> 
                 </ul>
+            </p>
+            <p>
+                Uma nova visualização pode ser encontrada na aba "Mapa de Bolhas", a qual contém
+                um mapa com bolhas indicando a quantidade de inscrições ocorridas em cada estado do
+                Brasil e, logo ao lado, uma série de boxplots indicando a distribuição da taxa de 
+                desistência dos alunos nos municípios de cada estado.
             </p>
         </section>
     </main>

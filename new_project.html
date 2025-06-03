@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,12 +14,13 @@
         if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
           document.documentElement.classList.add('dark-mode');
         }
-      } catch (e) {}
+      } catch (e) { }
     })();
   </script>
   <link rel="stylesheet" href="styles.css">
   <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
+
 <body>
   <header>
     <nav class="navbar">
@@ -28,13 +30,14 @@
         <li><a href="new_project.html">Novo Projeto</a></li>
         <li><a href="map-bubbles.html">Mapa de Bolhas</a></li>
         <li><a href="authors.html">Autores</a></li>
-        <li><a href="https://github.com/FGV-VIS-2025/tarefa-4-impacto_da_pandemia_no_enem" target="_blank">GitHub</a></li>
+        <li><a href="https://github.com/FGV-VIS-2025/tarefa-4-impacto_da_pandemia_no_enem" target="_blank">GitHub</a>
+        </li>
       </ul>
       <select id="theme-select">
         <option value="auto">🌗 Automático</option>
         <option value="light">🌞 Claro</option>
         <option value="dark">🌙 Escuro</option>
-      </select>  
+      </select>
     </nav>
   </header>
 
@@ -42,15 +45,15 @@
     <div class="layout">
       <!-- Coluna esquerda fixa: Mapa -->
       <div class="map-pane">
-        <h2>Minas Gerais por Mesorregiões</h2>
-        <h3>Selecione uma região para filtrar</h3>
+        <h2>Mapa do Brasil por Estados</h2>
+        <h3>Selecione um ou mais estados para filtrar</h3>
         <div id="map-container"></div>
         <div id="control-panel">
           <button id="reset-button">Remover Filtros</button>
           <div id="selected-regions"></div>
         </div>
       </div>
-  
+
       <!-- Coluna direita com gráficos e seções -->
       <div class="charts-pane">
         <section class="project-graphic">
@@ -69,16 +72,8 @@
             <option value=10>Tipo de escola</option>
           </select>
           <div id="chart-container"></div>
-          <br><br>
-          <br><br>
-          <br><br>
-          <h2 id="boxplot-title"></h2>
-          <div id="boxplot-container"></div>
-          <br><br>
-          <br><br>
-          <br><br>
         </section>
-  
+
         <section class="heatmap-container">
           <h2 id="heatmap-title">Quantidade de inscrições no ENEM por variáveis e regiões selecionadas</h2>
           <div>
@@ -113,7 +108,6 @@
               <option value="TP_ESCOLA">Tipo de escola</option>
             </select>
           </div>
-  
           <div id="heatmaps">
             <div class="heatmap-wrapper">
               <h3>2019</h3>
@@ -127,12 +121,30 @@
           <div id="colorbar">
             <svg id="colorbar"></svg>
           </div>
+          <div id="heatmaps", style="margin-top: -6rem">
+            <div class="heatmap-wrapper">
+              <h3>2021</h3>
+              <svg id="heatmap2021"></svg>
+            </div>
+            <div class="heatmap-wrapper">
+              <h3>2022</h3>
+              <svg id="heatmap2022"></svg>
+            </div>
+            <div class="heatmap-wrapper">
+              <h3>2023</h3>
+              <svg id="heatmap2023"></svg>
+            </div>
+          </div>
         </section>
       </div>
     </div>
+
+    <h2 id="boxplot-title"></h2>
+    <div id="boxplot-container"></div>
   </main>
 
   <script type="module" src="new_script.js"></script>
 
 </body>
+
 </html>

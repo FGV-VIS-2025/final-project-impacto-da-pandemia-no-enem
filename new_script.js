@@ -2,7 +2,7 @@ import { barCharts } from "./new_modules/bar-chart.js";
 import { boxPlot } from "./new_modules/boxplot.js";
 import { updateHeatMap } from "./new_modules/heatMap.js";
 import * as utils from "./new_modules/utils.js";
-const {tooltip} = utils;
+const { tooltip } = utils;
 
 
 /* Alteração para outros temas */
@@ -43,31 +43,99 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
 window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("variable1").selectedIndex = 0;
     document.getElementById("variable2").selectedIndex = 0;
-  });  
-  
+});
+
+
+const selectX = document.getElementById('variable1');
+const selectY = document.getElementById('variable2');
+
+const options = [
+    { value: "TP_COR_RACA", text: "Cor ou Raça" },
+    { value: "TP_ESTADO_CIVIL", text: "Estado Civil" },
+    { value: "TP_FAIXA_ETARIA", text: "Faixa Etária" },
+    { value: "TP_LOCALIZACAO_ESC", text: "Localização da Escola" },
+    { value: "Q025", text: "Possui internet" },
+    { value: "Q022", text: "Celulares na residência" },
+    { value: "Q024", text: "Computadores na residência" },
+    { value: "Q006", text: "Renda" },
+    { value: "TP_SEXO", text: "Sexo" },
+    { value: "TP_ESCOLA", text: "Tipo de escola" }
+];
+
+let hasRemovedAllX = false;
+let hasRemovedAllY = false;
+
+function updateOptions(selectedValue, targetSelect, originSelectId) {
+    const currentValue = targetSelect.value;
+
+    // Remove todas as opções do target select
+    targetSelect.innerHTML = '';
+
+    options.forEach(opt => {
+        if (opt.value !== selectedValue) {
+            const optionElement = document.createElement('option');
+            optionElement.value = opt.value;
+            optionElement.textContent = opt.text;
+            targetSelect.appendChild(optionElement);
+        }
+    });
+
+    // Se ainda for uma seleção válida, mantém o valor atual
+    if (targetSelect.querySelector(`option[value="${currentValue}"]`)) {
+        targetSelect.value = currentValue;
+    }
+}
+
+function removeInitialOption(selectElement, flagName) {
+    if (!window[flagName] && selectElement.value !== "all") {
+        const allOption = selectElement.querySelector('option[value="all"]');
+        if (allOption) {
+            selectElement.removeChild(allOption);
+        }
+        window[flagName] = true; // marca que já foi removido
+    }
+}
+
+selectX.addEventListener('change', () => {
+    removeInitialOption(selectX, 'hasRemovedAllX');
+    updateOptions(selectX.value, selectY, 'variable1');
+});
+
+selectY.addEventListener('change', () => {
+    removeInitialOption(selectY, 'hasRemovedAllY');
+    updateOptions(selectY.value, selectX, 'variable2');
+});
+
+// Inicializa com a opção "- Selecione uma variável -"
+selectX.innerHTML = '<option value="all">- Selecione uma variável -</option>' +
+    options.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('');
+selectY.innerHTML = '<option value="all">- Selecione uma variável -</option>' +
+    options.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('');
+
+
 /* Gráficos interativos */
 
 // Carreaga os arquivos CSV de 2019 e 2020
 Promise.all([
-        d3.csv("./data/data_graph/count_UF.csv"),
-        d3.csv("./data/data_graph/count_Q006.csv"),
-        d3.csv("./data/data_graph/count_Q022.csv"),
-        d3.csv("./data/data_graph/count_Q024.csv"),
-        d3.csv("./data/data_graph/count_Q025.csv"),
-        d3.csv("./data/data_graph/count_TP_COR_RACA.csv"),
-        d3.csv("./data/data_graph/count_TP_ESCOLA.csv"),
-        d3.csv("./data/data_graph/count_TP_ESTADO_CIVIL.csv"),
-        d3.csv("./data/data_graph/count_TP_FAIXA_ETARIA.csv"),
-        d3.csv("./data/data_graph/count_TP_LOCALIZACAO_ESC.csv"),
-        d3.csv("./data/data_graph/count_TP_SEXO.csv")
-  ]).then(([dataUF, dataQ6, dataQ22, dataQ24, dataQ25, dataCR, dataEsc, dataEC, dataFE, dataLoc, dataSexo]) => {
+    d3.csv("./data/data_graph/count_UF.csv"),
+    d3.csv("./data/data_graph/count_Q006.csv"),
+    d3.csv("./data/data_graph/count_Q022.csv"),
+    d3.csv("./data/data_graph/count_Q024.csv"),
+    d3.csv("./data/data_graph/count_Q025.csv"),
+    d3.csv("./data/data_graph/count_TP_COR_RACA.csv"),
+    d3.csv("./data/data_graph/count_TP_ESCOLA.csv"),
+    d3.csv("./data/data_graph/count_TP_ESTADO_CIVIL.csv"),
+    d3.csv("./data/data_graph/count_TP_FAIXA_ETARIA.csv"),
+    d3.csv("./data/data_graph/count_TP_LOCALIZACAO_ESC.csv"),
+    d3.csv("./data/data_graph/count_TP_SEXO.csv")
+]).then(([dataUF, dataQ6, dataQ22, dataQ24, dataQ25, dataCR, dataEsc, dataEC, dataFE, dataLoc, dataSexo]) => {
 
     const dataList = [dataUF, dataCR, dataEC, dataFE, dataLoc, dataQ25, dataQ22, dataQ24, dataQ6, dataSexo, dataEsc];
 
     barCharts([], "all", null, dataUF);
     // boxPlot([], data2019Grouped, data2020Grouped);
-    // updateHeatMap([], data2019, data2020);
-    
+    updateHeatMap([]);
+
     let selectedRegions = [];
 
     d3.select("#select-button").on("change", () => {
@@ -87,28 +155,28 @@ Promise.all([
         selectedRegions = [];
         barCharts([], "all", null, dataSexo);
         // boxPlot([], data2019Grouped, data2020Grouped);
-    
+
         svgMap.selectAll("path")
-              .classed("selected", false)
-              .transition().duration(300)
-              .attr("fill", "#69b3a2");
+            .classed("selected", false)
+            .transition().duration(300)
+            .attr("fill", "#69b3a2");
 
-        // document.getElementById("variable1").selectedIndex = 0;
-        // document.getElementById("variable2").selectedIndex = 0;
+        document.getElementById("variable1").selectedIndex = 0;
+        document.getElementById("variable2").selectedIndex = 0;
 
-        // updateHeatMap([], data2019, data2020);
-        
+        updateHeatMap([]);
+
         document.getElementById("selected-regions").textContent = "";
     });
-    
+
     d3.select("#reset-button").style("display", "block");
 
-    // d3.select("#variable1").on("change", () => {
-    //     updateHeatMap([], data2019, data2020); 
-    // });
-    // d3.select("#variable2").on("change", () => {
-    //     updateHeatMap([], data2019, data2020); 
-    // });
+    d3.select("#variable1").on("change", () => {
+        updateHeatMap([]);
+    });
+    d3.select("#variable2").on("change", () => {
+        updateHeatMap([]);
+    });
 
     const containerMap = d3.select("#map-container")
     const widthMap = 800;
@@ -123,7 +191,7 @@ Promise.all([
     // Configura a projeção e o gerador de caminho
     const projection = d3.geoMercator()
         .scale(800)
-        .center([-54, -14]) 
+        .center([-54, -14])
         .translate([widthMap / 2, heightMap / 2]);
 
     const path = d3.geoPath().projection(projection);
@@ -148,8 +216,8 @@ Promise.all([
             .on("mouseout", function (event, d) {
                 if (!d3.select(this).classed("selected")) {
                     d3.select(this)
-                    .transition().duration(500)
-                    .attr("fill", "#69b3a2");
+                        .transition().duration(500)
+                        .attr("fill", "#69b3a2");
                 }
                 else {
                     d3.select(this).transition().duration(500).attr("fill", "darkgreen");
@@ -160,11 +228,11 @@ Promise.all([
                 // Fazer o toggle da seleção para a região clicada
                 const current = d3.select(this);
                 const isSelected = current.classed("selected");
-                
+
                 current.classed("selected", !isSelected)
                     .transition().duration(300)
                     .attr("fill", !isSelected ? "darkgreen" : "#69b3a2");
-    
+
                 // Atualiza a visualização com as regiões atualmente selecionadas
                 svgMap.selectAll("path.selected")
                     .each((d) => {
@@ -172,11 +240,11 @@ Promise.all([
                             selectedRegions.push(d.properties.sigla);
                         }
                     });
-                
-                    if (isSelected) {
-                        // Remove a região da lista
-                        selectedRegions = selectedRegions.filter(region => region !== d.properties.sigla);
-                    }
+
+                if (isSelected) {
+                    // Remove a região da lista
+                    selectedRegions = selectedRegions.filter(region => region !== d.properties.sigla);
+                }
 
                 const columnIndex = document.getElementById("select-button").value;
                 const data = dataList[columnIndex];
@@ -185,7 +253,7 @@ Promise.all([
 
                 barCharts(selectedRegions, column, null, data);
                 // boxPlot(selectedRegions, data2019Grouped, data2020Grouped);
-                // updateHeatMap(selectedRegions, data2019, data2020);
+                updateHeatMap(selectedRegions);
 
                 if (selectedRegions.length == 27) { 
                     svgMap.selectAll("path")
@@ -198,10 +266,10 @@ Promise.all([
 
                 if (selectedRegions.length > 0) {
                     document.getElementById("selected-regions").innerHTML = //TODO:Alterar sigla para nome ou tirar lower case
-                      `<div class="selected-title">${selectedRegions.join(", <br>").toLowerCase()}</div>`;
+                        `<div class="selected-title">${selectedRegions.join(", <br>").toLowerCase()}</div>`;
                 } else {
                     document.getElementById("selected-regions").innerHTML = "";
-                  }
+                }
             });
     });
 });
