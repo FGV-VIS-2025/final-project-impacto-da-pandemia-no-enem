@@ -141,13 +141,13 @@ export function barCharts(regions = [], column = "all", filteredCategory, data) 
 
     const title = d3.select("#barchart-title");
     if (regions.length === 0) {
-        title.text(" Quantidade de inscrições no ENEM em Minas Gerais pela variável selecionada")
+        title.text(" Quantidade de inscrições no ENEM no Brasil pela variável selecionada")
     }
     else if (regions.length === 1) {
-        title.text(" Quantidade de Inscrições no ENEM na região selecionada pela variável selecionada")
+        title.text(" Quantidade de Inscrições no ENEM no estado selecionado pela variável selecionada")
     }  
     else {
-        title.text(" Quantidade de Inscrições do ENEM nas regiões selecionadas pela variável selecionada")
+        title.text(" Quantidade de Inscrições do ENEM nos estados selecionados pela variável selecionada")
     }   
 }
 

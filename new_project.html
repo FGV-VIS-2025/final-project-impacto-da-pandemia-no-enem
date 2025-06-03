@@ -44,8 +44,8 @@
     <div class="layout">
       <!-- Coluna esquerda fixa: Mapa -->
       <div class="map-pane">
-        <h2>Minas Gerais por Mesorregiões</h2>
-        <h3>Selecione uma região para filtrar</h3>
+        <h2>Mapa do Brasil por Estados</h2>
+        <h3>Selecione um ou mais estados para filtrar</h3>
         <div id="map-container"></div>
         <div id="control-panel">
           <button id="reset-button">Remover Filtros</button>
@@ -71,14 +71,6 @@
             <option value=10>Tipo de escola</option>
           </select>
           <div id="chart-container"></div>
-          <br><br>
-          <br><br>
-          <br><br>
-          <h2 id="boxplot-title"></h2>
-          <div id="boxplot-container"></div>
-          <br><br>
-          <br><br>
-          <br><br>
         </section>
 
         <section class="heatmap-container">
@@ -145,6 +137,9 @@
         </section>
       </div>
     </div>
+
+    <h2 id="boxplot-title"></h2>
+    <div id="boxplot-container"></div>
   </main>
 
   <script type="module" src="new_script.js"></script>
