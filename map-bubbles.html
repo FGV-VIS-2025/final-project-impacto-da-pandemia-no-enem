@@ -254,23 +254,18 @@
     // Carrega o mapa e os dados
     Promise.all([
         d3.json("https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson"),
-        d3.json("GeoJSON/estados_brasil.json"), // Seu arquivo com lat/long dos estados
-        d3.json("GeoJSON/uf_qtd_e_notas.json"), // Seu arquivo com dados do ENEM
-        d3.csv("data/data_graph/taxa_presenca.csv") // Seu arquivo CSV com dados de presença
+        d3.json("GeoJSON/estados_brasil.json"), // arquivo com lat/long dos estados
+        d3.csv("data/data_graph/count_UF.csv"), // arquivo com dados do ENEM
+        d3.csv("data/data_graph/taxa_presenca.csv") // arquivo CSV com dados de presença
     ]).then(([mapa, estados, enemData, presencaData]) => {
         // Organiza os dados do ENEM por ano e estado
         enemData.forEach(item => {
-            if (!dadosNotas[item.NU_ANO]) {
-                dadosNotas[item.NU_ANO] = [];
+            if (!dadosNotas[item.ANO]) {
+                dadosNotas[item.ANO] = [];
             }
-            dadosNotas[item.NU_ANO].push({
-                UF: item.SG_UF_PROVA,
-                QUANTIDADE_PESSOAS: item.QUANTIDADE_PESSOAS,
-                NU_NOTA_CN: item.NU_NOTA_CN,
-                NU_NOTA_CH: item.NU_NOTA_CH,
-                NU_NOTA_LC: item.NU_NOTA_LC,
-                NU_NOTA_MT: item.NU_NOTA_MT,
-                NU_NOTA_REDACAO: item.NU_NOTA_REDACAO
+            dadosNotas[item.ANO].push({
+                UF: item.UF,
+                QUANTIDADE_PESSOAS: item.QTD,
             });
         });
 
@@ -352,7 +347,7 @@
         const maxVal = d3.max(Object.values(datasets).flat(), d => d.NUM_PARTICIPANTES);
         const escalaRaio = d3.scaleSqrt()
             .domain([0, maxVal])
-            .range([0, 30]);
+            .range([0, 10]);
 
         const tooltip = d3.select("#tooltip-map");
 
