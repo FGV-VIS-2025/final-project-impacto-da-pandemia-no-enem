@@ -304,9 +304,10 @@
             });
         }
 
+        selectedStates = [];
+
         // Desenha o mapa
-                mapaGroup
-                mapaGroup
+        mapaGroup
             .selectAll("path")
             .data(mapa.features)
             .join("path")
@@ -316,8 +317,7 @@
             .attr("stroke-width", 1)
             .on("mouseover", function(event, d) {
                 d3.select(this)
-                    .attr("stroke-width", 3 + "px") 
-
+                    .attr("stroke-width", "3px");
             })
             .on("mouseout", function() {
                 d3.select(this)
@@ -325,15 +325,28 @@
                     .attr("stroke", "#333")
                     .attr("stroke-width", 1);
             })
-            .on("click", function (event, d) {
-                    const current = d3.select(this);
-                    const isSelected = current.classed("selected");
+            .on("click", function(event, d) {
+                const current = d3.select(this);
+                const isSelected = current.classed("selected");
 
-                    // Alterna a classe "selected"
-                    current.classed("selected", !isSelected)
+                // Alterna a classe "selected" e ajusta o stroke-width para feedback visual
+                current.classed("selected", !isSelected)
                         .transition().duration(300)
-                        .attr("stroke-width", !isSelected ? 3 : 1); // Aumenta o contorno se selecionado, volta ao normal se desmarcado
-                });
+                        .attr("stroke-width", !isSelected ? 3 : 1);
+
+                if (!isSelected) {
+                    // Se não estiver selecionado, adiciona a UF à lista (caso ainda não esteja inclusa)
+                    if (!selectedStates.includes(d.properties.sigla)) {
+                        selectedStates.push(d.properties.sigla);
+                    }
+                } else {
+                    // Se já estava selecionado, remove da lista
+                    selectedStates = selectedStates.filter(state => state !== d.properties.sigla);
+                }
+
+                updateBoxplot(currentYear, selectedStates);
+            });
+
 
         // Escala de tamanho
         const maxVal = d3.max(Object.values(datasets).flat(), d => d.NUM_PARTICIPANTES);
@@ -361,7 +374,7 @@
                     return y;
                 })
                 .attr("r", 0)
-                .attr("fill", "rgba(255, 255, 255, 0.8)")
+                .attr("fill", "steelblue")
                 .attr("opacity", 0.75)
                 .attr("opacity", 0.75)
                 .on("mouseover", function (event, d) {
@@ -371,8 +384,8 @@
                 })
                 .on("mousemove", function (event) {
                     tooltip
-                    .style("top", (event.pageY - 10) + "px")
-                    .style("left", (event.pageX + 10) + "px");
+                    .style("top", (event.pageY - 40) + "px")
+                    .style("left", (event.pageX - 200) + "px");
                 })
                 .on("mouseout", function () {
                     tooltip.style("visibility", "hidden");
@@ -478,12 +491,12 @@
             };
         }
 
-        function updateBoxplot(year) {
+        function updateBoxplot(year, selectedStates = []) {
             const container = d3.select("#boxplot-presenca");
             const svg = container.select("svg");
             svg.selectAll("*").remove();
             
-            const margin = {top: 40, right: 10, bottom: 150, left: 60};
+            const margin = { top: 40, right: 10, bottom: 150, left: 60 };
             const containerWidth = container.node().getBoundingClientRect().width;
             const containerHeight = container.node().getBoundingClientRect().height;
             
@@ -493,10 +506,15 @@
             svg.attr("width", containerWidth)
             .attr("height", containerHeight);
             
-            const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+            const g = svg.append("g")
+                        .attr("transform", `translate(${margin.left},${margin.top})`);
             
-            // Obter UFs ordenadas
-            const ufs = Object.keys(dadosPresenca[year] || []).sort();
+            // Obter UFs ordenadas a partir dos dados para o ano selecionado
+            let ufs = Object.keys(dadosPresenca[year] || {}).sort();
+            // Se houver uma lista de estados selecionados, filtra as UFs para exibir somente estes
+            if (selectedStates.length > 0) {
+                ufs = ufs.filter(uf => selectedStates.includes(uf));
+            }
             
             // Preparar dados para o boxplot
             const boxplotData = ufs.map(uf => {
@@ -515,16 +533,16 @@
                 .padding(0.2);
             
             const y = d3.scaleLinear()
-                .domain([0, 1]) // Taxa de presença vai de 0 a 1
+                .domain([0, 1]) // Taxa de presença varia de 0 a 1
                 .range([height, 0]);
             
-            // Desenhar boxplots
+            // Desenhar os boxplots para cada UF
             boxplotData.forEach(d => {
                 const stats = d.stats;
                 const xPos = x(d.uf) + x.bandwidth() / 2;
                 
                 if (d.values.length === 1) {
-                    // Caso especial para UFs com apenas 1 valor (como DF)
+                    // Caso especial para UFs com apenas 1 valor (ex.: DF)
                     g.append("circle")
                         .attr("cx", xPos)
                         .attr("cy", y(stats.singleValue))
@@ -546,17 +564,17 @@
                             d3.select("#tooltip-boxplot").style("visibility", "hidden");
                         });
                     
-                    // Adiciona texto indicando que é um único valor
+                    // Adiciona texto informativo para o caso de apenas um valor
                     g.append("text")
                         .attr("x", xPos)
                         .attr("y", y(stats.singleValue) - 10)
                         .attr("text-anchor", "middle")
                         .style("font-size", "10px")
-                        .style("fill", "#333")
+                        .style("fill", "#333");
                 } else {
-                    // Código original para boxplots normais (2+ valores)
+                    // Código para boxplots normais (2 ou mais valores)
                     
-                    // Linha vertical (min a max)
+                    // Linha vertical que une o mínimo ao máximo
                     g.append("line")
                         .attr("x1", xPos)
                         .attr("x2", xPos)
@@ -565,7 +583,7 @@
                         .attr("stroke", "#999")
                         .attr("stroke-width", 1);
                     
-                    // Caixa (Q1 a Q3)
+                    // Caixa que representa de Q1 a Q3
                     g.append("rect")
                         .attr("x", x(d.uf) + x.bandwidth() * 0.1)
                         .attr("y", y(stats.q3))
@@ -591,7 +609,7 @@
                             .enter()
                             .append("circle")
                             .attr("cx", xPos)
-                            .attr("cy", d => y(d))
+                            .attr("cy", dVal => y(dVal))
                             .attr("r", 3)
                             .attr("fill", "#e15759")
                             .attr("stroke", "#333")
@@ -611,7 +629,7 @@
                             });
                     }
                     
-                    // Adicionar interatividade à caixa
+                    // Retângulo invisível para facilitar a interatividade
                     g.append("rect")
                         .attr("x", x(d.uf) + x.bandwidth() * 0.1)
                         .attr("y", y(stats.q3))
@@ -621,12 +639,12 @@
                         .on("mouseover", function() {
                             d3.select("#tooltip-boxplot")
                                 .style("visibility", "visible")
-                                .html(`UF: ${d.uf}
-                                    Mínimo: ${stats.min.toFixed(2)}
-                                    Q1: ${stats.q1.toFixed(2)}
-                                    Mediana: ${stats.median.toFixed(2)}
-                                    Q3: ${stats.q3.toFixed(2)}
-                                    Máximo: ${stats.max.toFixed(2)}
+                                .html(`UF: ${d.uf}<br>
+                                    Mínimo: ${stats.min.toFixed(2)}<br>
+                                    Q1: ${stats.q1.toFixed(2)}<br>
+                                    Mediana: ${stats.median.toFixed(2)}<br>
+                                    Q3: ${stats.q3.toFixed(2)}<br>
+                                    Máximo: ${stats.max.toFixed(2)}<br>
                                     N° de municípios: ${d.values.length}`);
                         })
                         .on("mousemove", function(event) {
@@ -640,7 +658,7 @@
                 }
             });
             
-            // Eixo X com rotação
+            // Eixo X com rotação dos labels
             g.append("g")
                 .attr("transform", `translate(0,${height})`)
                 .call(d3.axisBottom(x))
@@ -653,7 +671,7 @@
 
             // Título do eixo X
             g.append("text")
-                .attr("transform", `translate(${width/2}, ${height + margin.bottom - 100})`)
+                .attr("transform", `translate(${width / 2}, ${height + margin.bottom - 100})`)
                 .style("text-anchor", "middle")
                 .style("font-size", "12px")
                 .style("font-weight", "bold")
@@ -664,7 +682,7 @@
                 .call(d3.axisLeft(y).ticks(5))
                 .style("font-size", "10px");
             
-            // Adiciona título do eixo Y
+            // Título do eixo Y
             g.append("text")
                 .attr("transform", "rotate(-90)")
                 .attr("y", -margin.left + 10)
@@ -675,7 +693,7 @@
                 .style("font-weight", "bold")
                 .text("Taxa de Presença");
             
-            // Adiciona título do gráfico
+            // Título do gráfico
             g.append("text")
                 .attr("x", width / 2)
                 .attr("y", -10)
