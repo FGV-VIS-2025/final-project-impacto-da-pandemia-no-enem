@@ -107,6 +107,18 @@
             stroke-width: 3px !important;
         }
 
+        html.dark-mode text{
+            fill: #ffffff !important;
+        }
+
+        html.dark-mode #legend span {
+            color: #000000 !important;
+        }
+
+        html.dark-mode strong {
+            color: #000000 !important;
+        }
+
     </style>
 
     <link rel="stylesheet" href="styles.css">
@@ -145,7 +157,7 @@
         <button id="playButton">▶️ Play</button>
     </div>
 
-    <div style="
+    <div id="legend", style="
         position: absolute;
         bottom: 20px;
         left: 20px;
@@ -154,7 +166,7 @@
         border-radius: 8px;
         box-shadow: 0 0 5px rgba(0,0,0,0.3);
     ">
-        <strong>Nível de Participantes:</strong><br>
+        <strong>Número de Inscrições:</strong><br>
         <div style="display: flex; align-items: center; margin-top: 5px;">
             <div style="width: 8px; height: 8px; background-color: steelblue; border-radius: 50%; margin-right: 5px;"></div>
             <span style="font-size: 12px;">Muito Baixo (10k - 40k)</span>
