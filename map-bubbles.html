@@ -78,6 +78,10 @@
             max-width: 800px;
         }
 
+        #mapa {
+            cursor: pointer;
+        }
+
         .boxplot-container {
             width: 100%;
             height: 600px;
@@ -299,7 +303,7 @@
             });
         }
 
-        selectedStates = [];
+        let selectedStates = [];
 
         // Desenha o mapa
         mapaGroup
@@ -422,7 +426,7 @@
             );
 
             // Atualiza o boxplot
-            updateBoxplot(currentYear);
+            updateBoxplot(currentYear, selectedStates);
             
             // Inicia a flutuação após atualização
             setTimeout(flutuarBolhas, 600);
@@ -702,7 +706,7 @@
         d3.select("#yearSlider").on("input", function () {
             currentYear = this.value;
             d3.select("#selectedYear").text(currentYear);
-            updateBubbles(datasets[currentYear]);
+            updateBubbles(datasets[currentYear], selectedStates);
         });
 
         // Lógica para o botão play
