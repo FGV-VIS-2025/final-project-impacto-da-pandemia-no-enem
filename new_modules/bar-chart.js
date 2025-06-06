@@ -3,7 +3,7 @@ import * as utils from "./utils.js";
 const {LOOKUP, width, height, margin, svg, y, barsGroup, tooltip} = utils;
 
 
-export function barCharts(regions = [], column = "all", filteredCategory, data) {
+export function barCharts(regions = [], column = "all", data, filteredCategory) {
 
     let colorScale = d3.schemeTableau10; 
     svg.selectAll(".legend").remove(); 
@@ -131,7 +131,7 @@ export function barCharts(regions = [], column = "all", filteredCategory, data) 
         })
         .on("click", function(event, d) {
             // Alterna o filtro: se já está filtrado, mostra tudo; senão, filtra
-            barCharts(regions, column, filteredCategory === d.key ? null : d.key, data);
+            barCharts(regions, column, data, filteredCategory === d.key ? null : d.key);
         });
 
     if (column && column !== "all"){
@@ -178,7 +178,7 @@ function createLegend(colorScale, column, regions, allCategories, currentFilter,
             .text(LOOKUP[column][currentFilter]);
 
         legendGroup.on("click", function() {
-            barCharts(regions, column, null, data);
+            barCharts(regions, column, data);
         });
     } else {
         allCategories.forEach((category, i) => {
@@ -199,7 +199,7 @@ function createLegend(colorScale, column, regions, allCategories, currentFilter,
                 .text(LOOKUP[column][category]);
 
             legendGroup.on("click", function() {
-                barCharts(regions, column, category, data);
+                barCharts(regions, column, data, category);
             });
         });
     }

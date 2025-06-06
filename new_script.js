@@ -1,5 +1,4 @@
 import { barCharts } from "./new_modules/bar-chart.js";
-import { boxPlot } from "./new_modules/boxplot.js";
 import { updateHeatMap } from "./new_modules/heatMap.js";
 import * as utils from "./new_modules/utils.js";
 const { tooltip } = utils;
@@ -132,8 +131,7 @@ Promise.all([
 
     const dataList = [dataUF, dataCR, dataEC, dataFE, dataLoc, dataQ25, dataQ22, dataQ24, dataQ6, dataSexo, dataEsc];
 
-    barCharts([], "all", null, dataUF);
-    // boxPlot([], data2019Grouped, data2020Grouped);
+    barCharts([], "all", dataUF);
     updateHeatMap([]);
 
     let selectedRegions = [];
@@ -144,7 +142,7 @@ Promise.all([
         const dataColumns = Object.keys(data[0]);
         const column = dataColumns[1];
 
-        barCharts(selectedRegions, column, null, data);
+        barCharts(selectedRegions, column, data);
     });
 
     // Configuração do botão "Remover Filtros"
@@ -153,8 +151,7 @@ Promise.all([
         selectButton.selectedIndex = 0;
         const column = selectButton.options[0].value;
         selectedRegions = [];
-        barCharts([], "all", null, dataSexo);
-        // boxPlot([], data2019Grouped, data2020Grouped);
+        barCharts([], "all", dataSexo);
 
         svgMap.selectAll("path")
             .classed("selected", false)
@@ -251,8 +248,7 @@ Promise.all([
                 const dataColumns = Object.keys(data[0]);
                 const column = dataColumns[1];
 
-                barCharts(selectedRegions, column, null, data);
-                // boxPlot(selectedRegions, data2019Grouped, data2020Grouped);
+                barCharts(selectedRegions, column, data);
                 updateHeatMap(selectedRegions);
 
                 if (selectedRegions.length == 27) { 
