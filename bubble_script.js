@@ -136,25 +136,33 @@ Promise.all([
                 .attr("stroke-width", 1);
         })
         .on("click", function(event, d) {
+            event.stopPropagation(); // Impede que o clique afete outros elementos
+            
             const current = d3.select(this);
             const isSelected = current.classed("selected");
+            const uf = d.properties.sigla;
 
-            // Alterna a classe "selected" e ajusta o stroke-width para feedback visual
+            // Alterna a seleção
             current.classed("selected", !isSelected)
                     .transition().duration(300)
                     .attr("stroke-width", !isSelected ? 3 : 1);
 
             if (!isSelected) {
-                // Se não estiver selecionado, adiciona a UF à lista (caso ainda não esteja inclusa)
-                if (!selectedStates.includes(d.properties.sigla)) {
-                    selectedStates.push(d.properties.sigla);
+                if (!selectedStates.includes(uf)) {
+                    selectedStates.push(uf);
                 }
             } else {
-                // Se já estava selecionado, remove da lista
-                selectedStates = selectedStates.filter(state => state !== d.properties.sigla);
+                selectedStates = selectedStates.filter(state => state !== uf);
             }
 
+            // Atualiza o boxplot
             updateBoxplot(currentYear, selectedStates);
+            
+            // Sincroniza as bolhas
+            bolhasGroup.selectAll("circle")
+                .attr("stroke", d => selectedStates.includes(d.uf) ? "#333" : "none")
+                .attr("stroke-width", d => selectedStates.includes(d.uf) ? 2 : 0)
+                .classed("selected", d => selectedStates.includes(d.uf));
         });
 
 
@@ -200,9 +208,40 @@ Promise.all([
             .on("mouseout", function () {
                 tooltip.style("visibility", "hidden");
             })
+            .on("click", function(event, d) {
+                event.stopPropagation(); // Impede que o evento se propague para o mapa
+                
+                const current = d3.select(this);
+                const isSelected = current.classed("selected");
+                
+                // Alterna a classe "selected" e ajusta o visual
+                current.classed("selected", !isSelected)
+                        .attr("stroke", !isSelected ? "#333" : "none")
+                        .attr("stroke-width", !isSelected ? 2 : 0);
+                
+                if (!isSelected) {
+                    // Se não estiver selecionado, adiciona a UF à lista
+                    if (!selectedStates.includes(d.uf)) {
+                        selectedStates.push(d.uf);
+                    }
+                } else {
+                    // Se já estava selecionado, remove da lista
+                    selectedStates = selectedStates.filter(state => state !== d.uf);
+                }
+                
+                // Atualiza o boxplot com os estados selecionados
+                updateBoxplot(currentYear, selectedStates);
+                
+                // Atualiza também o mapa para refletir a seleção
+                mapaGroup.selectAll("path")
+                    .classed("selected", feature => selectedStates.includes(feature.properties.sigla))
+                    .attr("stroke-width", feature => selectedStates.includes(feature.properties.sigla) ? 3 : 1);
+            })
             .transition()
             .duration(500)
-            .attr("r", d => escalaRaio(d.NUM_PARTICIPANTES)),
+            .attr("r", d => escalaRaio(d.NUM_PARTICIPANTES))
+            .attr("stroke", d => selectedStates.includes(d.uf) ? "#333" : "none")
+            .attr("stroke-width", d => selectedStates.includes(d.uf) ? 2 : 0),
 
             update => update
             .on("mouseover", function (event, d) {
@@ -227,7 +266,9 @@ Promise.all([
                 d.originalY = y;
                 return x;
             })
-            .attr("cy", d => d.originalY),
+            .attr("cy", d => d.originalY)
+            .attr("stroke", d => selectedStates.includes(d.uf) ? "#333" : "none")
+            .attr("stroke-width", d => selectedStates.includes(d.uf) ? 2 : 0),
 
             exit => exit
             .transition()
@@ -238,19 +279,6 @@ Promise.all([
 
         // Atualiza o boxplot
         updateBoxplot(currentYear, selectedStates);
-        
-        // Inicia a flutuação após atualização
-        setTimeout(flutuarBolhas, 600);
-    }
-
-    function flutuarBolhas() {
-        bolhasGroup.selectAll("circle")
-            .transition()
-            .duration(2000)
-            .ease(d3.easeSinInOut)
-            .attr("cx", d => d.originalX + (Math.random() - 0.5) * 10) 
-            .attr("cy", d => d.originalY + (Math.random() - 0.5) * 10)
-            .on("end", flutuarBolhas); // repete o ciclo
     }
 
     function atualizarTooltipSeHover() {
