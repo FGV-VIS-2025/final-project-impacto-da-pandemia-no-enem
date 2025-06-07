@@ -161,7 +161,7 @@ Promise.all([
             // Sincroniza as bolhas
             bolhasGroup.selectAll("circle")
                 .attr("stroke", d => selectedStates.includes(d.uf) ? "#333" : "none")
-                .attr("stroke-width", d => selectedStates.includes(d.uf) ? 2 : 0)
+                .attr("stroke-width", d => selectedStates.includes(d.uf) ? 4 : 0)
                 .classed("selected", d => selectedStates.includes(d.uf));
         });
 
@@ -555,11 +555,11 @@ Promise.all([
         const isSelected = index !== -1;
         
         if (!isSelected) {
-            // Se não estiver selecionado, adiciona a UF à lista
-            selectedStates = [uf]; // Seleciona apenas este UF (substitui o array)
+            // Adiciona à seleção existente (não substitui)
+            selectedStates.push(uf);
         } else {
-            // Se já estava selecionado, remove da lista
-            selectedStates = [];
+            // Remove apenas este UF da seleção
+            selectedStates = selectedStates.filter(state => state !== uf);
         }
         
         // Atualiza o boxplot (que vai filtrar apenas os selecionados)
@@ -568,7 +568,8 @@ Promise.all([
         // Atualiza o mapa
         mapaGroup.selectAll("path")
             .classed("selected", feature => selectedStates.includes(feature.properties.sigla))
-            .attr("stroke-width", feature => selectedStates.includes(feature.properties.sigla) ? 3 : 1);
+            .transition().duration(300)
+            .attr("stroke-width", feature => selectedStates.includes(feature.properties.sigla) ? 4 : 1);
         
         // Atualiza as bolhas
         bolhasGroup.selectAll("circle")
