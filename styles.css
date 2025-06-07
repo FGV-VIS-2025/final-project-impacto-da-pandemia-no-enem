@@ -613,6 +613,11 @@ html.dark-mode .x-label {
 }
 /*---------------------------*/
 
+#flow-chart {
+    display: flex;
+    justify-content: center;
+}
+
 
 /*------Para as colunas------*/
 @media (min-width: 700px){

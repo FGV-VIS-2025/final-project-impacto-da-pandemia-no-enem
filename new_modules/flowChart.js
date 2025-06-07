@@ -1,0 +1,274 @@
+import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+import * as utils from "./utils.js";
+const {LOOKUP, widthFlow, heightFlow, margin, svg, containerFlow, tooltip} = utils;
+
+export function flowChart_1(regions = [], data) {
+    const variable = Object.keys(data[0])[1];
+
+    const filteredData = regions.length === 0 ? data : data.filter(d => regions.includes(d.UF));
+
+    const years = [...new Set(filteredData.map(d => d.ANO))].sort();
+    const categories = [...new Set(filteredData.map(d => d[variable]))].sort();
+
+    const aggregated = {};
+    years.forEach(year => {
+        aggregated[year] = { total: 0 };
+        categories.forEach(cat => { aggregated[year][cat] = 0; });
+    });
+
+    filteredData.forEach(d => {
+        const year = d.ANO;
+        const cat = d[variable];
+        const value = +d.QTD;
+        aggregated[year][cat] += value;
+        aggregated[year].total += value;
+    });
+
+    const maxTotal = d3.max(years, year => aggregated[year].total);
+
+    const axisHeight = 200;
+
+    const thicknessScale = d3.scaleLinear()
+        .domain([0, maxTotal])
+        .range([0, axisHeight]);
+
+    const width = widthFlow - margin.left - margin.right;
+    const height = heightFlow - margin.top - margin.bottom;
+
+    const xScale = d3.scalePoint()
+        .domain(years)
+        .range([0, width])
+        .padding(0.5);
+
+    const centerY = height / 2;
+
+    let nodes = [];
+    years.forEach(year => {
+        const total = aggregated[year].total;
+        const thickness = thicknessScale(total); 
+        const ribbonYoffset = centerY - thickness / 2;
+        let cumulative = 0;
+        categories.forEach(cat => {
+        const val = aggregated[year][cat];
+        const segmentHeight = total ? (val / total) * thickness : 0;
+        nodes.push({
+            ano: year,
+            category: cat,
+            value: val,
+            x: xScale(year),
+            y0: ribbonYoffset + cumulative,
+            y1: ribbonYoffset + cumulative + segmentHeight
+        });
+        cumulative += segmentHeight;
+        });
+    });
+
+    const series = categories.map(cat => {
+        return {
+        category: cat,
+        values: nodes.filter(n => n.category === cat)
+                    .sort((a, b) => d3.ascending(a.ano, b.ano))
+        };
+    });
+
+    const color = d3.scaleOrdinal(d3.schemeTableau10).domain(categories);
+
+    d3.select("#flow-chart").select("svg").remove();
+
+    // Gerador de área para desenhar os ribbons para cada categoria
+    const area = d3.area()
+        .x(d => d.x)
+        .y0(d => d.y0)
+        .y1(d => d.y1)
+        .curve(d3.curveMonotoneX);
+
+    // Desenha cada faixa para cada categoria
+    series.forEach(ser => {
+        svg.append("path")
+        .datum(ser.values)
+        .attr("d", area)
+        .attr("fill", color(ser.category))
+        .attr("opacity", 0.7);
+    });
+
+    // Desenha os eixos verticais para cada ano com altura fixa
+    years.forEach(year => {
+        const x = xScale(year);
+        const axisTop = centerY - axisHeight / 2;
+        const axisBottom = centerY + axisHeight / 2;
+        svg.append("line")
+        .attr("x1", x)
+        .attr("x2", x)
+        .attr("y1", axisTop)
+        .attr("y2", axisBottom)
+        .attr("stroke", "#ccc");
+        
+        // Rótulo do ano abaixo do eixo
+        svg.append("text")
+        .attr("x", x)
+        .attr("y", axisBottom + 15)
+        .attr("text-anchor", "middle")
+        .style("font-weight", "bold")
+        .text(year);
+    });
+
+    // Adiciona rótulos nas faixas para exibir os valores de inscrições
+    series.forEach(ser => {
+        ser.values.forEach(d => {
+        svg.append("text")
+            .attr("x", d.x)
+            .attr("y", (d.y0 + d.y1) / 2)
+            .attr("dy", "0.35em")
+            .attr("text-anchor", "middle")
+            .attr("fill", "white")
+            .style("font-size", "10px")
+            .text(d3.format(",")(d.value));
+        });
+    });
+
+    // Título do gráfico
+    svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", -20)
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .style("font-weight", "bold")
+        .text("Inscrições no ENEM por Categoria e Ano");
+}
+
+export function flowChart_2(regions = [], data) {
+
+    const variable = Object.keys(data[0])[1];
+    
+    const filteredData = regions.length === 0 ? data : data.filter(d => regions.includes(d.UF));
+    
+    const years = [...new Set(filteredData.map(d => d.ANO))].sort();
+    const categories = [...new Set(filteredData.map(d => d[variable]))].sort();
+    
+    const aggregated = {};
+    years.forEach(year => {
+        aggregated[year] = {};
+        categories.forEach(cat => { aggregated[year][cat] = 0; });
+    });
+
+    filteredData.forEach(d => {
+        const year = d.ANO;
+        const cat = d[variable];
+        const val = +d.QTD;
+        aggregated[year][cat] += val;
+    });
+    
+    const globalMax = d3.max(years, year => d3.max(categories, cat => aggregated[year][cat]));
+    
+    const axisHeight = 250;
+    const nCat = categories.length;
+    const slotHeight = axisHeight / nCat;  
+    
+    const commonScale = d3.scaleLinear()
+        .domain([0, globalMax])
+        .range([5, slotHeight * 0.8]);
+
+    const width = widthFlow - margin.left - margin.right;
+    const height = heightFlow - margin.top - margin.bottom;
+    
+    const centerY = height / 2;
+    const axisTop = centerY - axisHeight / 2;
+    
+    // Para cada categoria, definimos o centro do "slot" vertical onde ela será desenhada.
+    const categoryCenters = categories.map((cat, i) => axisTop + (i + 0.5) * slotHeight);
+    
+    // Escala horizontal para posicionar os anos
+    const xScale = d3.scalePoint()
+        .domain(years)
+        .range([0, width])
+        .padding(0.5);
+    
+    const nodes = [];
+    years.forEach(year => {
+        categories.forEach((cat, catIndex) => {
+            const val = aggregated[year][cat];
+            const thickness = commonScale(val);
+            const center = categoryCenters[catIndex];
+            
+            nodes.push({
+                ano: year,
+                category: cat,
+                value: val,
+                x: xScale(year),
+                y0: center - thickness / 2,
+                y1: center + thickness / 2
+            });
+        });
+    });
+    
+    // Agrupa os nós por categoria
+    const series = categories.map(cat => {
+        return {
+        category: cat,
+        values: nodes.filter(n => n.category === cat)
+                    .sort((a, b) => d3.ascending(a.ano, b.ano))
+        };
+    });
+    
+    // Escala de cores para atribuir uma cor a cada categoria
+    const color = d3.scaleOrdinal(d3.schemeTableau10).domain(categories);
+    
+
+    // Gerador de área para desenhar os ribbons (faixas) para cada categoria
+    const area = d3.area()
+        .x(d => d.x)
+        .y0(d => d.y0)
+        .y1(d => d.y1)
+        .curve(d3.curveMonotoneX);
+    
+    // Desenha cada faixa (ribbon) para cada categoria
+    series.forEach(ser => {
+        svg.append("path")
+        .datum(ser.values)
+        .attr("d", area)
+        .attr("fill", color(ser.category))
+        .attr("opacity", 0.7);
+    });
+    
+    // Desenha os eixos verticais com altura fixa
+    years.forEach(year => {
+        const x = xScale(year);
+        svg.append("line")
+        .attr("x1", x)
+        .attr("x2", x)
+        .attr("y1", axisTop)
+        .attr("y2", axisTop + axisHeight)
+        .attr("stroke", "#ccc");
+    
+        // Rótulo do ano abaixo do eixo
+        svg.append("text")
+        .attr("x", x)
+        .attr("y", axisTop + axisHeight + 15)
+        .attr("text-anchor", "middle")
+        .style("font-weight", "bold")
+        .text(year);
+    });
+    
+    // Adiciona rótulos sobre cada faixa para mostrar os valores
+    series.forEach(ser => {
+        ser.values.forEach(d => {
+        svg.append("text")
+            .attr("x", d.x)
+            .attr("y", (d.y0 + d.y1) / 2)
+            .attr("dy", "0.35em")
+            .attr("text-anchor", "middle")
+            .attr("fill", "white")
+            .style("font-size", "10px")
+            .text(d3.format(",")(d.value));
+        });
+    });
+    
+    // Título do gráfico
+    svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", -20)
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .style("font-weight", "bold")
+        .text("Inscrições no ENEM por Categoria e Ano (faixas independentes)");
+}
