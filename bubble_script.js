@@ -400,6 +400,10 @@ Promise.all([
                     })
                     .on("mouseout", function() {
                         d3.select("#tooltip-boxplot").style("visibility", "hidden");
+                    })
+                    .on("click", function(event) {
+                        event.stopPropagation();
+                        handleBoxplotClick(d.uf);
                     });
                 
                 // Adiciona texto informativo para o caso de apenas um valor
@@ -492,6 +496,10 @@ Promise.all([
                     })
                     .on("mouseout", function() {
                         d3.select("#tooltip-boxplot").style("visibility", "hidden");
+                    })
+                    .on("click", function(event) {
+                        event.stopPropagation();
+                        handleBoxplotClick(d.uf);
                     });
             }
         });
@@ -539,6 +547,34 @@ Promise.all([
             .style("font-size", "16px")
             .style("font-weight", "bold")
             .text(`Distribuição das Taxas de Presença por UF - ${year}`);
+    }
+
+    // Função para tratar o clique no boxplot
+    function handleBoxplotClick(uf) {
+        const index = selectedStates.indexOf(uf);
+        const isSelected = index !== -1;
+        
+        if (!isSelected) {
+            // Se não estiver selecionado, adiciona a UF à lista
+            selectedStates = [uf]; // Seleciona apenas este UF (substitui o array)
+        } else {
+            // Se já estava selecionado, remove da lista
+            selectedStates = [];
+        }
+        
+        // Atualiza o boxplot (que vai filtrar apenas os selecionados)
+        updateBoxplot(currentYear, selectedStates);
+        
+        // Atualiza o mapa
+        mapaGroup.selectAll("path")
+            .classed("selected", feature => selectedStates.includes(feature.properties.sigla))
+            .attr("stroke-width", feature => selectedStates.includes(feature.properties.sigla) ? 3 : 1);
+        
+        // Atualiza as bolhas
+        bolhasGroup.selectAll("circle")
+            .attr("stroke", d => selectedStates.includes(d.uf) ? "#333" : "none")
+            .attr("stroke-width", d => selectedStates.includes(d.uf) ? 2 : 0)
+            .classed("selected", d => selectedStates.includes(d.uf));
     }
 
     // Slider
