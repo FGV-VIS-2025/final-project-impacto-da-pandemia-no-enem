@@ -347,119 +347,63 @@ Promise.all([
         const g = svg.append("g")
                     .attr("transform", `translate(${margin.left},${margin.top})`);
         
-        // Obter UFs ordenadas a partir dos dados para o ano selecionado
-        let ufs = Object.keys(dadosPresenca[year] || {}).sort();
-        // Se houver uma lista de estados selecionados, filtra as UFs para exibir somente estes
+        // Obter e preparar dados
+        let boxplotData = Object.keys(dadosPresenca[year] || {})
+            .map(uf => {
+                const stats = boxplotStats(dadosPresenca[year][uf]);
+                return {
+                    uf: uf,
+                    values: dadosPresenca[year][uf],
+                    stats: stats,
+                    median: stats ? stats.median : 0
+                };
+            })
+            .filter(d => d.stats !== null);
+        
+        // Filtrar por estados selecionados se houver
         if (selectedStates.length > 0) {
-            ufs = ufs.filter(uf => selectedStates.includes(uf));
+            boxplotData = boxplotData.filter(d => selectedStates.includes(d.uf));
         }
         
-        // Preparar dados para o boxplot
-        const boxplotData = ufs.map(uf => {
-            const stats = boxplotStats(dadosPresenca[year][uf]);
-            return {
-                uf: uf,
-                values: dadosPresenca[year][uf],
-                stats: stats
-            };
-        }).filter(d => d.stats !== null);
+        // Ordenar por mediana (decrescente)
+        boxplotData.sort((a, b) => d3.descending(a.median, b.median));
+        
+        // Extrair UFs ordenadas
+        const ufsOrdenadas = boxplotData.map(d => d.uf);
         
         // Escalas
         const x = d3.scaleBand()
-            .domain(ufs)
+            .domain(ufsOrdenadas)
             .range([0, width])
             .padding(0.2);
         
         const y = d3.scaleLinear()
             .domain([0, 1]) // Taxa de presença varia de 0 a 1
-            .range([height, 0]);
+            .range([height, 0])
+            .nice();
         
-        // Desenhar os boxplots para cada UF
-        boxplotData.forEach(d => {
-            const stats = d.stats;
-            const xPos = x(d.uf) + x.bandwidth() / 2;
-            
-            if (d.values.length === 1) {
-                // Caso especial para UFs com apenas 1 valor (ex.: DF)
-                g.append("circle")
-                    .attr("cx", xPos)
-                    .attr("cy", y(stats.singleValue))
-                    .attr("r", 3)
-                    .attr("fill", "#e15759")
-                    .attr("stroke", "#333")
-                    .attr("stroke-width", 1)
-                    .on("mouseover", function() {
-                        d3.select("#tooltip-boxplot")
-                            .style("visibility", "visible")
-                            .html(`UF: ${d.uf}<br>Taxa de Presença: ${stats.singleValue.toFixed(2)}`);
-                    })
-                    .on("mousemove", function(event) {
-                        d3.select("#tooltip-boxplot")
-                            .style("top", (event.pageY - 10) + "px")
-                            .style("left", (event.pageX + 10) + "px");
-                    })
-                    .on("mouseout", function() {
-                        d3.select("#tooltip-boxplot").style("visibility", "hidden");
-                    })
-                    .on("click", function(event) {
-                        event.stopPropagation();
-                        handleBoxplotClick(d.uf);
-                    });
+            // Desenhar os boxplots com transições
+            boxplotData.forEach(d => {
+                const stats = d.stats;
                 
-                // Adiciona texto informativo para o caso de apenas um valor
-                g.append("text")
-                    .attr("x", xPos)
-                    .attr("y", y(stats.singleValue) - 10)
-                    .attr("text-anchor", "middle")
-                    .style("font-size", "10px")
-                    .style("fill", "#333");
-            } else {
-                // Código para boxplots normais (2 ou mais valores)
-                
-                // Linha vertical que une o mínimo ao máximo
-                g.append("line")
-                    .attr("x1", xPos)
-                    .attr("x2", xPos)
-                    .attr("y1", y(stats.min))
-                    .attr("y2", y(stats.max))
-                    .attr("stroke", "#999")
-                    .attr("stroke-width", 1);
-                
-                // Caixa que representa de Q1 a Q3
-                g.append("rect")
-                    .attr("x", x(d.uf) + x.bandwidth() * 0.1)
-                    .attr("y", y(stats.q3))
-                    .attr("width", x.bandwidth() * 0.8)
-                    .attr("height", y(stats.q1) - y(stats.q3))
-                    .attr("fill", "#4e79a7")
-                    .attr("stroke", "#333")
-                    .attr("stroke-width", 1);
-                
-                // Linha da mediana
-                g.append("line")
-                    .attr("x1", x(d.uf) + x.bandwidth() * 0.1)
-                    .attr("x2", x(d.uf) + x.bandwidth() * 0.9)
-                    .attr("y1", y(stats.median))
-                    .attr("y2", y(stats.median))
-                    .attr("stroke", "#fff")
-                    .attr("stroke-width", 2);
-                
-                // Outliers
-                if (stats.outliers.length > 0) {
-                    g.selectAll(".outlier")
-                        .data(stats.outliers)
-                        .enter()
-                        .append("circle")
-                        .attr("cx", xPos)
-                        .attr("cy", dVal => y(dVal))
-                        .attr("r", 3)
+                // Grupo para cada boxplot
+                const boxplotGroup = g.append("g")
+                    .attr("class", "boxplot")
+                    .attr("transform", `translate(${x(d.uf)},0)`);
+
+                if (d.values.length === 1) {
+                    // Caso especial para UFs com apenas 1 valor
+                    boxplotGroup.append("circle")
+                        .attr("cx", 0)
+                        .attr("cy", y(stats.singleValue))
+                        .attr("r", 0)
                         .attr("fill", "#e15759")
                         .attr("stroke", "#333")
-                        .attr("stroke-width", 0.5)
-                        .on("mouseover", function(event, outlierValue) {
+                        .attr("stroke-width", 1)
+                        .on("mouseover", function() {
                             d3.select("#tooltip-boxplot")
                                 .style("visibility", "visible")
-                                .html(`UF: ${d.uf}<br>Taxa de Presença: ${outlierValue.toFixed(2)}`);
+                                .html(`UF: ${d.uf}<br>Valor único: ${stats.singleValue.toFixed(2)}`);
                         })
                         .on("mousemove", function(event) {
                             d3.select("#tooltip-boxplot")
@@ -468,44 +412,148 @@ Promise.all([
                         })
                         .on("mouseout", function() {
                             d3.select("#tooltip-boxplot").style("visibility", "hidden");
-                        });
+                        })
+                        .transition()
+                        .duration(500)
+                        .attr("cx", x.bandwidth() / 2)
+                        .attr("r", 3);
+
+                    // Texto informativo
+                    boxplotGroup.append("text")
+                        .attr("x", x.bandwidth() / 2)
+                        .attr("y", y(stats.singleValue) - 10)
+                        .attr("text-anchor", "middle")
+                        .style("font-size", "10px")
+                        .style("fill", "#333")
+                        .text(d.uf);
+                } else { 
+                    // Linha vertical (mínimo ao máximo) - com tooltip
+                    boxplotGroup.append("line")
+                        .attr("x1", x.bandwidth() / 2)
+                        .attr("x2", x.bandwidth() / 2)
+                        .attr("y1", y(stats.min))
+                        .attr("y2", y(stats.max))
+                        .attr("stroke", "#999")
+                        .attr("stroke-width", 1)
+                        .on("mouseover", function() {
+                            d3.select("#tooltip-boxplot")
+                                .style("visibility", "visible")
+                                .html(`UF: ${d.uf}<br>Intervalo: ${stats.min.toFixed(2)} a ${stats.max.toFixed(2)}`);
+                        })
+                        .on("mousemove", function(event) {
+                            d3.select("#tooltip-boxplot")
+                                .style("top", (event.pageY - 10) + "px")
+                                .style("left", (event.pageX + 10) + "px");
+                        })
+                        .on("mouseout", function() {
+                            d3.select("#tooltip-boxplot").style("visibility", "hidden");
+                        })
+                        .style("pointer-events", "bounding-box");    
+
+                    // Caixa principal (Q1 a Q3) - com tooltip completo
+                    boxplotGroup.append("rect")
+                        .attr("x", x.bandwidth() / 2)
+                        .attr("y", y(stats.q3))
+                        .attr("width", 0)
+                        .attr("height", y(stats.q1) - y(stats.q3))
+                        .attr("fill", "#4e79a7")
+                        .attr("stroke", "#333")
+                        .attr("stroke-width", 1)
+                        .on("mouseover", function() {
+                            d3.select("#tooltip-boxplot")
+                                .style("visibility", "visible")
+                                .html(`UF: ${d.uf}<br>
+                                    Q1: ${stats.q1.toFixed(2)}<br>
+                                    Mediana: ${stats.median.toFixed(2)}<br>
+                                    Q3: ${stats.q3.toFixed(2)}<br>
+                                    IQR: ${stats.iqr.toFixed(2)}`);
+                        })
+                        .on("mousemove", function(event) {
+                            d3.select("#tooltip-boxplot")
+                                .style("top", (event.pageY - 10) + "px")
+                                .style("left", (event.pageX + 10) + "px");
+                        })
+                        .on("mouseout", function() {
+                            d3.select("#tooltip-boxplot").style("visibility", "hidden");
+                        })
+                        .transition()
+                        .duration(500)
+                        .attr("x", x.bandwidth() * 0.1)
+                        .attr("width", x.bandwidth() * 0.8)
+                        .style("pointer-events", "bounding-box");
+
+                    // Linha da mediana (sem tooltip próprio)
+                    boxplotGroup.append("line")
+                        .attr("x1", x.bandwidth() / 2)
+                        .attr("x2", x.bandwidth() / 2)
+                        .attr("y1", y(stats.median))
+                        .attr("y2", y(stats.median))
+                        .attr("stroke", "#fff")
+                        .attr("stroke-width", 2)
+                        .attr("opacity", 0)
+                        .transition()
+                        .duration(500)
+                        .attr("opacity", 1)
+                        .attr("x1", x.bandwidth() * 0.1)
+                        .attr("x2", x.bandwidth() * 0.9);   
+
+                    // Outliers (com tooltips individuais)
+                    if (stats.outliers.length > 0) {
+                        boxplotGroup.selectAll(".outlier")
+                            .data(stats.outliers)
+                            .enter()
+                            .append("circle")
+                            .attr("class", "outlier")
+                            .attr("cx", 0)
+                            .attr("cy", dVal => y(dVal))
+                            .attr("r", 3)
+                            .attr("fill", "#e15759")
+                            .attr("stroke", "#333")
+                            .attr("stroke-width", 0.5)
+                            .on("mouseover", function(event, dVal) {
+                                d3.select("#tooltip-boxplot")
+                                    .style("visibility", "visible")
+                                    .html(`UF: ${d.uf}<br>Outlier: ${dVal.toFixed(2)}`);
+                            })
+                            .on("mousemove", function(event) {
+                                d3.select("#tooltip-boxplot")
+                                    .style("top", (event.pageY - 10) + "px")
+                                    .style("left", (event.pageX + 10) + "px");
+                            })
+                            .on("mouseout", function() {
+                                d3.select("#tooltip-boxplot").style("visibility", "hidden");
+                            })
+                            .transition()
+                            .duration(500)
+                            .attr("cx", x.bandwidth() / 2)
+                            .style("pointer-events", "bounding-box");
+                    }
+                    const boxHeight = y(stats.min) - y(stats.max); // Altura desde o máximo até mínimo
+                    const boxTop = y(stats.max); // Posição Y do topo do boxplot
+
+                    // Área transparente para capturar cliques
+                    boxplotGroup.append("rect")
+                        .attr("x", 0)
+                        .attr("y", boxTop)
+                        .attr("width", x.bandwidth())
+                        .attr("height", boxHeight)
+                        .attr("fill", "transparent")
+                        .style("pointer-events", "all")
+                        .on("mouseover", null) // Ignora mouseover
+                        .on("mouseout", null)  // Ignora mouseout
+                        .on("mousemove", null) // Ignora mousemove
+                        .on("click", function(event) {
+                            event.stopPropagation();
+                            handleBoxplotClick(d.uf);
+                    });  
+
+                    boxplotGroup.selectAll(".outlier, line, rect:not([fill='transparent'])").raise();
                 }
-                
-                // Retângulo invisível para facilitar a interatividade
-                g.append("rect")
-                    .attr("x", x(d.uf) + x.bandwidth() * 0.1)
-                    .attr("y", y(stats.q3))
-                    .attr("width", x.bandwidth() * 0.8)
-                    .attr("height", y(stats.q1) - y(stats.q3))
-                    .attr("fill", "transparent")
-                    .on("mouseover", function() {
-                        d3.select("#tooltip-boxplot")
-                            .style("visibility", "visible")
-                            .html(`UF: ${d.uf}<br>
-                                Mínimo: ${stats.min.toFixed(2)}<br>
-                                Q1: ${stats.q1.toFixed(2)}<br>
-                                Mediana: ${stats.median.toFixed(2)}<br>
-                                Q3: ${stats.q3.toFixed(2)}<br>
-                                Máximo: ${stats.max.toFixed(2)}<br>
-                                N° de municípios: ${d.values.length}`);
-                    })
-                    .on("mousemove", function(event) {
-                        d3.select("#tooltip-boxplot")
-                            .style("top", (event.pageY - 10) + "px")
-                            .style("left", (event.pageX + 10) + "px");
-                    })
-                    .on("mouseout", function() {
-                        d3.select("#tooltip-boxplot").style("visibility", "hidden");
-                    })
-                    .on("click", function(event) {
-                        event.stopPropagation();
-                        handleBoxplotClick(d.uf);
-                    });
-            }
-        });
+            });
         
-        // Eixo X com rotação dos labels
+        // Eixos
         g.append("g")
+            .attr("class", "axis axis--x")
             .attr("transform", `translate(0,${height})`)
             .call(d3.axisBottom(x))
             .selectAll("text")
@@ -514,21 +562,21 @@ Promise.all([
             .style("font-size", "10px")
             .attr("dx", "-0.5em")
             .attr("dy", "0.5em");
-
-        // Título do eixo X
-        g.append("text")
-            .attr("transform", `translate(${width / 2}, ${height + margin.bottom - 100})`)
-            .style("text-anchor", "middle")
-            .style("font-size", "12px")
-            .style("font-weight", "bold")
-            .text("Unidade Federativa (UF)");    
         
-        // Eixo Y
         g.append("g")
+            .attr("class", "axis axis--y")
             .call(d3.axisLeft(y).ticks(5))
             .style("font-size", "10px");
         
-        // Título do eixo Y
+        // Títulos
+        g.append("text")
+            .attr("x", width / 2)
+            .attr("y", -10)
+            .attr("text-anchor", "middle")
+            .style("font-size", "16px")
+            .style("font-weight", "bold")
+            .text(`Distribuição das Taxas de Presença por UF - ${year}`);
+        
         g.append("text")
             .attr("transform", "rotate(-90)")
             .attr("y", -margin.left + 10)
@@ -539,14 +587,12 @@ Promise.all([
             .style("font-weight", "bold")
             .text("Taxa de Presença");
         
-        // Título do gráfico
         g.append("text")
-            .attr("x", width / 2)
-            .attr("y", -10)
-            .attr("text-anchor", "middle")
-            .style("font-size", "16px")
+            .attr("transform", `translate(${width / 2}, ${height + margin.bottom - 100})`)
+            .style("text-anchor", "middle")
+            .style("font-size", "12px")
             .style("font-weight", "bold")
-            .text(`Distribuição das Taxas de Presença por UF - ${year}`);
+            .text("Unidade Federativa (UF)");
     }
 
     // Função para tratar o clique no boxplot
@@ -579,10 +625,21 @@ Promise.all([
     }
 
     // Slider
-    d3.select("#yearSlider").on("input", function () {
+    d3.select("#yearSlider").on("input", function() {
         currentYear = this.value;
         d3.select("#selectedYear").text(currentYear);
+        
+        // Transição suave para as bolhas
         updateBubbles(datasets[currentYear], selectedStates);
+        
+        // Transição suave para o boxplot
+        svg.selectAll(".boxplot-group")
+        .transition()
+        .duration(300)
+        .attr("opacity", 0)
+        .remove();
+        
+        updateBoxplot(currentYear, selectedStates);
     });
 
     // Lógica para o botão play
