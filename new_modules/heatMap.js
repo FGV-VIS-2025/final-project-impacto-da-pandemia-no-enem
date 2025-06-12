@@ -67,7 +67,6 @@ function updateColorbar(colorscale) {
 export async function updateHeatMap(regions) {
     const years = [2019, 2020, 2021, 2022, 2023];
 
-    console.log(regions);
     // Obtém por meio do select do HTML as variáveis dos eixos
     let selected1 = document.getElementById("variable1").value;
     let selected2 = document.getElementById("variable2").value;
@@ -95,19 +94,6 @@ export async function updateHeatMap(regions) {
     const filteredData2021 = (regions.length === 0) ? data.filter(d => d.NU_ANO === "2021") : data.filter(d => regions.includes(d.SG_UF_PROVA)).filter(d => d.NU_ANO === "2021");
     const filteredData2022 = (regions.length === 0) ? data.filter(d => d.NU_ANO === "2022") : data.filter(d => regions.includes(d.SG_UF_PROVA)).filter(d => d.NU_ANO === "2022");
     const filteredData2023 = (regions.length === 0) ? data.filter(d => d.NU_ANO === "2023") : data.filter(d => regions.includes(d.SG_UF_PROVA)).filter(d => d.NU_ANO === "2023");
-
-    // Define o domínio da escala de cores
-    let maxCount2019 = d3.max(filteredData2019, d => d.QTD) || 0;
-    let maxCount2020 = d3.max(filteredData2020, d => d.QTD) || 0;
-    let maxCount2021 = d3.max(filteredData2021, d => d.QTD) || 0;
-    let maxCount2022 = d3.max(filteredData2022, d => d.QTD) || 0;
-    let maxCount2023 = d3.max(filteredData2023, d => d.QTD) || 0;
-
-    const customBlues = t => d3.interpolateBlues(0.1 + 0.9 * t); // Removendo tons muito claros
-
-    const color = d3.scaleSequential()
-        .interpolator(customBlues)
-        .domain([0, d3.max(Object.values([maxCount2019, maxCount2020, maxCount2021, maxCount2022, maxCount2023]))]);
         
     // Bases de dados por anos
     const filteredDataYears = {2019: filteredData2019, 2020: filteredData2020, 2021: filteredData2021, 2022: filteredData2022, 2023: filteredData2023};
@@ -116,18 +102,19 @@ export async function updateHeatMap(regions) {
     const map1 = LOOKUP[selected1] || (d=>d);
     const map2 = LOOKUP[selected2] || (d=>d);
 
-    // Cria os heatmaps
+    let maxCounts = []
+    let graphData = {};
+
     years.forEach(year => {
         const cats1 = [...new Set(filteredDataYears[year].map(d => d[selected1]))].filter(d => d !== "").sort();
         const cats2 = [...new Set(filteredDataYears[year].map(d => d[selected2]))].filter(d => d !== "").sort();
 
-        //  Desenvolvimento do gráfico
-        const x = d3.scaleBand()
+        let x = d3.scaleBand()
             .domain(cats1)
             .range([0, width])
             .padding(0.05);
 
-        const y = d3.scaleBand()
+        let y = d3.scaleBand()
             .domain(cats2)
             .range([height, 0])
             .padding(0.05);
@@ -159,6 +146,29 @@ export async function updateHeatMap(regions) {
 
         fullGrid = Object.values(fullGridMap);
         
+        let maxValue = Math.max(...fullGrid.map(obj=> obj.value));
+        maxCounts.push(maxValue);
+
+        graphData[year] = {
+            x: x,
+            y: y,
+            fullGrid: fullGrid
+        }
+    })
+
+    // Define o domínio da escala de cores
+    const customBlues = t => d3.interpolateViridis(0 + 1*t) // 0.1 + 0.9 * t); // Removendo tons muito claros
+
+    const color = d3.scaleSequential()
+        .interpolator(customBlues)
+        .domain([0, d3.max(Object.values(maxCounts))]);
+
+    // Cria os heatmaps
+    years.forEach(year => {
+        //  Desenvolvimento do gráfico
+        let x = graphData[year].x;
+        let y = graphData[year].y;
+        let fullGrid = graphData[year].fullGrid;
 
         let svgHeatmap;
         if (year === 2019) {    
