@@ -71,7 +71,7 @@ export function barCharts(regions = [], column = "all", data, filteredCategory) 
         .attr("text-anchor", "middle")
         .attr("transform", "rotate(-90)")
         .attr("x", -height / 2)
-        .attr("y", margin.left / 2 - 10)
+        .attr("y", margin.left / 2 - 20)
         .text("Nº de Inscrições")
         .style("font-weight", "normal");
 
