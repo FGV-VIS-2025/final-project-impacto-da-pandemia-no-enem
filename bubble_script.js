@@ -417,15 +417,6 @@ Promise.all([
                         .duration(500)
                         .attr("cx", x.bandwidth() / 2)
                         .attr("r", 3);
-
-                    // Texto informativo
-                    boxplotGroup.append("text")
-                        .attr("x", x.bandwidth() / 2)
-                        .attr("y", y(stats.singleValue) - 10)
-                        .attr("text-anchor", "middle")
-                        .style("font-size", "10px")
-                        .style("fill", "#333")
-                        .text(d.uf);
                 } else { 
                     // Linha vertical (mínimo ao máximo) - com tooltip
                     boxplotGroup.append("line")
