@@ -1,6 +1,6 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 import * as utils from "./utils.js";
-const {LOOKUP, widthFlow, heightFlow, margin, svg, containerFlow, tooltip} = utils;
+const {LOOKUP, widthFlow, heightFlow, margin, svgFlow, containerFlow, tooltip} = utils;
 
 export function flowChart_1(regions = [], data) {
     const variable = Object.keys(data[0])[1];
@@ -32,15 +32,12 @@ export function flowChart_1(regions = [], data) {
         .domain([0, maxTotal])
         .range([0, axisHeight]);
 
-    const width = widthFlow - margin.left - margin.right;
-    const height = heightFlow - margin.top - margin.bottom;
-
     const xScale = d3.scalePoint()
         .domain(years)
-        .range([0, width])
+        .range([-50, widthFlow + 50])
         .padding(0.5);
 
-    const centerY = height / 2;
+    const centerY = heightFlow / 2;
 
     let nodes = [];
     years.forEach(year => {
@@ -73,22 +70,19 @@ export function flowChart_1(regions = [], data) {
 
     const color = d3.scaleOrdinal(d3.schemeTableau10).domain(categories);
 
-    d3.select("#flow-chart").select("svg").remove();
-
     // Gerador de área para desenhar os ribbons para cada categoria
     const area = d3.area()
-        .x(d => d.x)
-        .y0(d => d.y0)
-        .y1(d => d.y1)
-        .curve(d3.curveMonotoneX);
+                   .x(d => d.x)
+                   .y0(d => d.y0)
+                   .y1(d => d.y1)
+                   .curve(d3.curveMonotoneX);
 
     // Desenha cada faixa para cada categoria
     series.forEach(ser => {
-        svg.append("path")
-        .datum(ser.values)
-        .attr("d", area)
-        .attr("fill", color(ser.category))
-        .attr("opacity", 0.7);
+        svgFlow.append("path")
+               .datum(ser.values)
+               .attr("d", area)
+               .attr("fill", color(ser.category));
     });
 
     // Desenha os eixos verticais para cada ano com altura fixa
@@ -96,26 +90,27 @@ export function flowChart_1(regions = [], data) {
         const x = xScale(year);
         const axisTop = centerY - axisHeight / 2;
         const axisBottom = centerY + axisHeight / 2;
-        svg.append("line")
-        .attr("x1", x)
-        .attr("x2", x)
-        .attr("y1", axisTop)
-        .attr("y2", axisBottom)
-        .attr("stroke", "#ccc");
-        
+        svgFlow.append("line")
+               .attr("class", "paralel-axis")
+               .attr("x1", x)
+               .attr("x2", x)
+               .attr("y1", axisTop)
+               .attr("y2", axisBottom);
+             
         // Rótulo do ano abaixo do eixo
-        svg.append("text")
-        .attr("x", x)
-        .attr("y", axisBottom + 15)
-        .attr("text-anchor", "middle")
-        .style("font-weight", "bold")
-        .text(year);
+        svgFlow.append("text")
+               .attr("class", "x-label")
+               .attr("x", x)
+               .attr("y", axisBottom + 15)
+               .attr("text-anchor", "middle")
+               .style("font-weight", "bold")
+               .text(year);
     });
 
     // Adiciona rótulos nas faixas para exibir os valores de inscrições
     series.forEach(ser => {
         ser.values.forEach(d => {
-        svg.append("text")
+        svgFlow.append("text")
             .attr("x", d.x)
             .attr("y", (d.y0 + d.y1) / 2)
             .attr("dy", "0.35em")
@@ -127,8 +122,8 @@ export function flowChart_1(regions = [], data) {
     });
 
     // Título do gráfico
-    svg.append("text")
-        .attr("x", width / 2)
+    svgFlow.append("text")
+        .attr("x", widthFlow / 2)
         .attr("y", -20)
         .attr("text-anchor", "middle")
         .style("font-size", "16px")
@@ -168,10 +163,7 @@ export function flowChart_2(regions = [], data) {
         .domain([0, globalMax])
         .range([5, slotHeight * 0.8]);
 
-    const width = widthFlow - margin.left - margin.right;
-    const height = heightFlow - margin.top - margin.bottom;
-    
-    const centerY = height / 2;
+    const centerY = heightFlow / 2;
     const axisTop = centerY - axisHeight / 2;
     
     // Para cada categoria, definimos o centro do "slot" vertical onde ela será desenhada.
@@ -180,7 +172,7 @@ export function flowChart_2(regions = [], data) {
     // Escala horizontal para posicionar os anos
     const xScale = d3.scalePoint()
         .domain(years)
-        .range([0, width])
+        .range([-50, widthFlow + 50])
         .padding(0.5);
     
     const nodes = [];
@@ -223,49 +215,49 @@ export function flowChart_2(regions = [], data) {
     
     // Desenha cada faixa (ribbon) para cada categoria
     series.forEach(ser => {
-        svg.append("path")
+        svgFlow.append("path")
         .datum(ser.values)
         .attr("d", area)
-        .attr("fill", color(ser.category))
-        .attr("opacity", 0.7);
+        .attr("fill", color(ser.category));
     });
     
     // Desenha os eixos verticais com altura fixa
     years.forEach(year => {
         const x = xScale(year);
-        svg.append("line")
-        .attr("x1", x)
-        .attr("x2", x)
-        .attr("y1", axisTop)
-        .attr("y2", axisTop + axisHeight)
-        .attr("stroke", "#ccc");
+        svgFlow.append("line")
+            .attr("class", "paralel-axis")
+            .attr("x1", x)
+            .attr("x2", x)
+            .attr("y1", axisTop)
+            .attr("y2", axisTop + axisHeight);
     
         // Rótulo do ano abaixo do eixo
-        svg.append("text")
-        .attr("x", x)
-        .attr("y", axisTop + axisHeight + 15)
-        .attr("text-anchor", "middle")
-        .style("font-weight", "bold")
-        .text(year);
+        svgFlow.append("text")
+            .attr("class", "x-label")
+            .attr("x", x)
+            .attr("y", axisTop + axisHeight + 15)
+            .attr("text-anchor", "middle")
+            .style("font-weight", "bold")
+            .text(year);
     });
     
     // Adiciona rótulos sobre cada faixa para mostrar os valores
     series.forEach(ser => {
         ser.values.forEach(d => {
-        svg.append("text")
-            .attr("x", d.x)
-            .attr("y", (d.y0 + d.y1) / 2)
-            .attr("dy", "0.35em")
-            .attr("text-anchor", "middle")
-            .attr("fill", "white")
-            .style("font-size", "10px")
-            .text(d3.format(",")(d.value));
+            svgFlow.append("text")
+                .attr("x", d.x)
+                .attr("y", (d.y0 + d.y1) / 2)
+                .attr("dy", "0.35em")
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .style("font-size", "10px")
+                .text(d3.format(",")(d.value));
         });
     });
     
     // Título do gráfico
-    svg.append("text")
-        .attr("x", width / 2)
+    svgFlow.append("text")
+        .attr("x", widthFlow / 2)
         .attr("y", -20)
         .attr("text-anchor", "middle")
         .style("font-size", "16px")

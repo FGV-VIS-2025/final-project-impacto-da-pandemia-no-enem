@@ -102,7 +102,7 @@ export const yBox = d3.scaleLinear()
     .range([heightBox - margin.top, margin.bottom]);    
 
 export const containerFlow = d3.select("#flow-chart");
-export const widthFlow = containerFlow.node().getBoundingClientRect().width + 150;
+export const widthFlow = containerFlow.node().getBoundingClientRect().width;
 export const heightFlow = 400;
 
 export const svgFlow = containerFlow

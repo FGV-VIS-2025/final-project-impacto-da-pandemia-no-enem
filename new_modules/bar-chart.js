@@ -156,7 +156,7 @@ function createLegend(colorScale, column, regions, allCategories, currentFilter,
     
     const legend = svg.append("g")
         .attr("class", "legend")
-        .attr("transform", `translate(${width - margin.right - 140},${margin.top})`);
+        .attr("transform", `translate(${width - margin.right - 180},${margin.top - 20})`);
 
     if (currentFilter) {
         let index = allCategories.indexOf(currentFilter);

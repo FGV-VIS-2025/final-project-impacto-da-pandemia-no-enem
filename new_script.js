@@ -132,11 +132,11 @@ Promise.all([
 
     const dataList = [dataUF, dataCR, dataEC, dataFE, dataLoc, dataQ25, dataQ22, dataQ24, dataQ6, dataSexo, dataEsc];
 
-    // barCharts([], dataUF);
-    // updateHeatMap([]);
-
-
     flowChart_2([], dataCR);
+    barCharts([], dataUF);
+    updateHeatMap([]);
+
+
     
     let selectedRegions = [];
 

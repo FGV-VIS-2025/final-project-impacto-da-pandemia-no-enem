@@ -252,6 +252,7 @@ html.dark-mode a {
 #chart-container {
     display: flex;
     justify-content: center;
+    align-items: center;
 }
 
 .bar {
@@ -616,8 +617,16 @@ html.dark-mode .x-label {
 #flow-chart {
     display: flex;
     justify-content: center;
+    align-items: center;
 }
 
+.paralel-axis {
+    stroke: gray;
+}
+
+html.dark-mode .paralel-axis {
+    stroke: #ccc;
+}
 
 /*------Para as colunas------*/
 @media (min-width: 700px){
