@@ -35,7 +35,7 @@ function flowChart_1(regions, data, filteredCategory) {
         aggregated[year].total += value;
     });
 
-    const axisHeight = 200;
+    const axisHeight = 150;
 
     svgFlow.selectAll("*").remove();
 
@@ -137,8 +137,18 @@ function flowChart_1(regions, data, filteredCategory) {
                .attr("x", x)
                .attr("y", axisBottom + 15)
                .attr("text-anchor", "middle")
-               .style("font-weight", "bold")
+               .style("font-weight", "normal")
                .text(year);
+        
+        svgFlow.append("text")
+               .attr("class", "y-label")
+               .attr("text-anchor", "middle")
+               .attr("transform", "rotate(-90)")
+               .attr("x", - heightFlow / 2)
+               .attr("y", margin.left / 2)
+               .attr("text-anchor", "middle")
+               .style("font-weight", "normal")
+               .text("Nº de Inscreições");
     });
 
     // Overlay de tooltip/ação para cada segmento (faixa)
@@ -184,13 +194,13 @@ function flowChart_1(regions, data, filteredCategory) {
         });
 
     // Título do gráfico
-    svgFlow.append("text")
-        .attr("x", widthFlow / 2)
-        .attr("y", -20)
-        .attr("text-anchor", "middle")
-        .style("font-size", "16px")
-        .style("font-weight", "bold")
-        .text("Inscrições no ENEM por Categoria e Ano");
+    // svgFlow.append("text")
+    //     .attr("x", widthFlow / 2)
+    //     .attr("y", -20)
+    //     .attr("text-anchor", "middle")
+    //     .style("font-size", "16px")
+    //     .style("font-weight", "bold")
+    //     .text("Inscrições no ENEM por Categoria e Ano");
 }
 
 function flowChart_2(regions, data, filteredCategory) {

@@ -265,7 +265,7 @@ Promise.all([
 
                 if (selectedRegions.length > 0) {
                     document.getElementById("selected-regions").innerHTML = //TODO:Alterar sigla para nome ou tirar lower case
-                        `<div class="selected-title">${selectedRegions.join(", <br>").toLowerCase()}</div>`;
+                        `<div class="selected-title">${selectedRegions.join(", <br>").toUpperCase()}</div>`;
                 } else {
                     document.getElementById("selected-regions").innerHTML = "";
                 }

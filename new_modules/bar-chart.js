@@ -64,8 +64,8 @@ export function barCharts(regions, data, filteredCategory) {
     svg.append("text")
         .attr("class", "x-label")
         .attr("text-anchor", "middle")
-        .attr("x", width / 2)
-        .attr("y", height - 6)
+        .attr("x", width / 2 + 24)
+        .attr("y", height - 18)
         .text("Ano")
         .style("font-weight", "normal");        
     
@@ -74,7 +74,7 @@ export function barCharts(regions, data, filteredCategory) {
         .attr("text-anchor", "middle")
         .attr("transform", "rotate(-90)")
         .attr("x", -height / 2)
-        .attr("y", margin.left / 2 - 10)
+        .attr("y", margin.left / 2 - 20)
         .text("Nº de Inscrições")
         .style("font-weight", "normal");
 

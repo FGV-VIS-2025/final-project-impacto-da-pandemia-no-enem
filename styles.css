@@ -628,6 +628,14 @@ html.dark-mode .paralel-axis {
     stroke: #ccc;
 }
 
+.overlay {
+    cursor: pointer;
+}
+
+svg { 
+    overflow: visible;
+}
+
 /* .overlay:hover {
   stroke: black;
   stroke-width: 2px;

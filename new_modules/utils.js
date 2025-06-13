@@ -69,12 +69,12 @@ export const GLOBAL_MARGIN = { top: 30, right: 30, bottom: 50, left: 80 };
 
 export const container = d3.select("#chart-container");
 export const width = container.node().getBoundingClientRect().width;
-export const height = 400;
+export const height = 380;
 export const margin = GLOBAL_MARGIN;
 
 export const svg = container
     .append("svg")
-    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("viewBox", `0 30 ${width} ${height}`)
     .attr("preserveAspectRatio", "xMidYMid meet");
 
 export const y = d3.scaleLinear()
@@ -103,9 +103,9 @@ export const yBox = d3.scaleLinear()
 
 export const containerFlow = d3.select("#flow-chart");
 export const widthFlow = containerFlow.node().getBoundingClientRect().width;
-export const heightFlow = 400;
+export const heightFlow = 350;
 
 export const svgFlow = containerFlow
     .append("svg")
-    .attr("viewBox", `0 0 ${widthFlow} ${heightFlow}`)
+    .attr("viewBox", `-25 130 ${widthFlow} ${heightFlow}`)
     .attr("preserveAspectRatio", "xMidYMid meet");
