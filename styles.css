@@ -252,6 +252,7 @@ html.dark-mode a {
 #chart-container {
     display: flex;
     justify-content: center;
+    align-items: center;
 }
 
 .bar {
@@ -613,6 +614,33 @@ html.dark-mode .x-label {
 }
 /*---------------------------*/
 
+#flow-chart {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.paralel-axis {
+    stroke: gray;
+}
+
+html.dark-mode .paralel-axis {
+    stroke: #ccc;
+}
+
+.overlay {
+    cursor: pointer;
+}
+
+svg { 
+    overflow: visible;
+}
+
+/* .overlay:hover {
+  stroke: black;
+  stroke-width: 2px;
+  cursor: pointer;
+} */
 
 /*------Para as colunas------*/
 @media (min-width: 700px){
