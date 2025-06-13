@@ -132,7 +132,7 @@ Promise.all([
 
     const dataList = [dataUF, dataCR, dataEC, dataFE, dataLoc, dataQ25, dataQ22, dataQ24, dataQ6, dataSexo, dataEsc];
 
-    flowChart_2([], dataCR);
+    flowChart_2([], dataUF);
     barCharts([], dataUF);
     updateHeatMap([]);
 
@@ -143,7 +143,7 @@ Promise.all([
     d3.select("#select-button").on("change", () => {
         const columnIndex = document.getElementById("select-button").value;
         const data = dataList[columnIndex];
-
+        flowChart_2(selectedRegions, data)
         barCharts(selectedRegions, data);
     });
 
@@ -154,6 +154,7 @@ Promise.all([
         
         selectedRegions = [];
 
+        flowChart_2([], dataUF);
         barCharts([], dataUF);
 
         svgMap.selectAll("path")
@@ -249,6 +250,7 @@ Promise.all([
                 const columnIndex = document.getElementById("select-button").value;
                 const data = dataList[columnIndex];
 
+                flowChart_2(selectedRegions, data)
                 barCharts(selectedRegions, data);
                 updateHeatMap(selectedRegions);
 

@@ -2,7 +2,7 @@ import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 import * as utils from "./utils.js";
 const {LOOKUP, widthFlow, heightFlow, margin, svgFlow, containerFlow, tooltip} = utils;
 
-export function flowChart_1(regions = [], data) {
+export function flowChart_1(regions = [], data, filteredCategory = null) {
     const variable = Object.keys(data[0])[1];
 
     const filteredData = regions.length === 0 ? data : data.filter(d => regions.includes(d.UF));
@@ -16,6 +16,8 @@ export function flowChart_1(regions = [], data) {
         categories.forEach(cat => { aggregated[year][cat] = 0; });
     });
 
+    const displayCategories = filteredCategory ? [filteredCategory] : categories;
+
     filteredData.forEach(d => {
         const year = d.ANO;
         const cat = d[variable];
@@ -27,6 +29,8 @@ export function flowChart_1(regions = [], data) {
     const maxTotal = d3.max(years, year => aggregated[year].total);
 
     const axisHeight = 200;
+
+    svgFlow.selectAll("*").remove();
 
     const thicknessScale = d3.scaleLinear()
         .domain([0, maxTotal])
@@ -45,7 +49,7 @@ export function flowChart_1(regions = [], data) {
         const thickness = thicknessScale(total); 
         const ribbonYoffset = centerY - thickness / 2;
         let cumulative = 0;
-        categories.forEach(cat => {
+        displayCategories.forEach(cat => {
         const val = aggregated[year][cat];
         const segmentHeight = total ? (val / total) * thickness : 0;
         nodes.push({
@@ -60,15 +64,15 @@ export function flowChart_1(regions = [], data) {
         });
     });
 
-    const series = categories.map(cat => {
+    const series = displayCategories.map(cat => {
         return {
-        category: cat,
-        values: nodes.filter(n => n.category === cat)
-                    .sort((a, b) => d3.ascending(a.ano, b.ano))
+            category: cat,
+            values: nodes.filter(n => n.category === cat)
+                         .sort((a, b) => d3.ascending(a.ano, b.ano))
         };
     });
 
-    const color = d3.scaleOrdinal(d3.schemeTableau10).domain(categories);
+    const color = d3.scaleOrdinal(d3.schemeTableau10).domain(displayCategories);
 
     // Gerador de área para desenhar os ribbons para cada categoria
     const area = d3.area()
@@ -88,8 +92,8 @@ export function flowChart_1(regions = [], data) {
     // Desenha os eixos verticais para cada ano com altura fixa
     years.forEach(year => {
         const x = xScale(year);
-        const axisTop = centerY - axisHeight / 2;
-        const axisBottom = centerY + axisHeight / 2;
+        const axisTop = centerY - axisHeight / 2 - 10;
+        const axisBottom = centerY + axisHeight / 2 + 10;
         svgFlow.append("line")
                .attr("class", "paralel-axis")
                .attr("x1", x)
@@ -107,19 +111,32 @@ export function flowChart_1(regions = [], data) {
                .text(year);
     });
 
-    // Adiciona rótulos nas faixas para exibir os valores de inscrições
-    series.forEach(ser => {
-        ser.values.forEach(d => {
-        svgFlow.append("text")
-            .attr("x", d.x)
-            .attr("y", (d.y0 + d.y1) / 2)
-            .attr("dy", "0.35em")
-            .attr("text-anchor", "middle")
-            .attr("fill", "white")
-            .style("font-size", "10px")
-            .text(d3.format(",")(d.value));
+    const overlayWidth = 30;
+
+    svgFlow.selectAll("rect.overlay")
+        .data(nodes)
+        .enter()
+        .append("rect")
+        .attr("class", "overlay")
+        .attr("x", d => d.x - overlayWidth / 2)
+        .attr("y", d => d.y0)
+        .attr("width", overlayWidth)
+        .attr("height", d => d.y1 - d.y0)
+        .style("fill", "transparent")
+        .on("mouseover", function(event, d) {
+            console.log(LOOKUP[variable][d.category])
+            tooltip.transition().duration(200).style("opacity", 0.9);
+            tooltip.html(`Ano: ${d.ano}<br>Categoria: ${LOOKUP[variable][d.category]}<br>Inscrições: ${d3.format(",")(d.value)}`)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mousemove", function(event) {
+            tooltip.style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", function() {
+            tooltip.transition().duration(500).style("opacity", 0);
         });
-    });
 
     // Título do gráfico
     svgFlow.append("text")
@@ -131,7 +148,7 @@ export function flowChart_1(regions = [], data) {
         .text("Inscrições no ENEM por Categoria e Ano");
 }
 
-export function flowChart_2(regions = [], data) {
+export function flowChart_2(regions = [], data, filteredCategory = null) {
 
     const variable = Object.keys(data[0])[1];
     
@@ -146,6 +163,8 @@ export function flowChart_2(regions = [], data) {
         categories.forEach(cat => { aggregated[year][cat] = 0; });
     });
 
+    const displayCategories = filteredCategory ? [filteredCategory] : categories;
+
     filteredData.forEach(d => {
         const year = d.ANO;
         const cat = d[variable];
@@ -153,12 +172,14 @@ export function flowChart_2(regions = [], data) {
         aggregated[year][cat] += val;
     });
     
-    const globalMax = d3.max(years, year => d3.max(categories, cat => aggregated[year][cat]));
+    const globalMax = d3.max(years, year => d3.max(displayCategories, cat => aggregated[year][cat]));
     
     const axisHeight = 250;
-    const nCat = categories.length;
+    const nCat = displayCategories.length;
     const slotHeight = axisHeight / nCat;  
     
+    svgFlow.selectAll("*").remove();
+
     const commonScale = d3.scaleLinear()
         .domain([0, globalMax])
         .range([5, slotHeight * 0.8]);
@@ -167,7 +188,7 @@ export function flowChart_2(regions = [], data) {
     const axisTop = centerY - axisHeight / 2;
     
     // Para cada categoria, definimos o centro do "slot" vertical onde ela será desenhada.
-    const categoryCenters = categories.map((cat, i) => axisTop + (i + 0.5) * slotHeight);
+    const categoryCenters = displayCategories.map((cat, i) => axisTop + (i + 0.5) * slotHeight);
     
     // Escala horizontal para posicionar os anos
     const xScale = d3.scalePoint()
@@ -177,7 +198,7 @@ export function flowChart_2(regions = [], data) {
     
     const nodes = [];
     years.forEach(year => {
-        categories.forEach((cat, catIndex) => {
+        displayCategories.forEach((cat, catIndex) => {
             const val = aggregated[year][cat];
             const thickness = commonScale(val);
             const center = categoryCenters[catIndex];
@@ -194,16 +215,16 @@ export function flowChart_2(regions = [], data) {
     });
     
     // Agrupa os nós por categoria
-    const series = categories.map(cat => {
+    const series = displayCategories.map(cat => {
         return {
-        category: cat,
-        values: nodes.filter(n => n.category === cat)
-                    .sort((a, b) => d3.ascending(a.ano, b.ano))
+            category: cat,
+            values: nodes.filter(n => n.category === cat)
+                         .sort((a, b) => d3.ascending(a.ano, b.ano))
         };
     });
     
     // Escala de cores para atribuir uma cor a cada categoria
-    const color = d3.scaleOrdinal(d3.schemeTableau10).domain(categories);
+    const color = d3.scaleOrdinal(d3.schemeTableau10).domain(displayCategories);
     
 
     // Gerador de área para desenhar os ribbons (faixas) para cada categoria
@@ -241,19 +262,33 @@ export function flowChart_2(regions = [], data) {
             .text(year);
     });
     
-    // Adiciona rótulos sobre cada faixa para mostrar os valores
-    series.forEach(ser => {
-        ser.values.forEach(d => {
-            svgFlow.append("text")
-                .attr("x", d.x)
-                .attr("y", (d.y0 + d.y1) / 2)
-                .attr("dy", "0.35em")
-                .attr("text-anchor", "middle")
-                .attr("fill", "white")
-                .style("font-size", "10px")
-                .text(d3.format(",")(d.value));
+    const overlayWidth = 30;
+
+    svgFlow.selectAll("rect.overlay")
+        .data(nodes)
+        .enter()
+        .append("rect")
+        .attr("class", "overlay")
+        .attr("x", d => d.x - overlayWidth / 2)
+        .attr("y", d => d.y0)
+        .attr("width", overlayWidth)
+        .attr("height", d => d.y1 - d.y0)
+        .style("fill", "transparent")
+        .on("mouseover", function(event, d) {
+            console.log(LOOKUP[variable][d.category])
+            tooltip.transition().duration(200).style("opacity", 0.9);
+            tooltip.html(`Ano: ${d.ano}<br>Categoria: ${LOOKUP[variable][d.category]}<br>Inscrições: ${d3.format(",")(d.value)}`)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mousemove", function(event) {
+            tooltip.style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", function() {
+            tooltip.transition().duration(500).style("opacity", 0);
         });
-    });
+
     
     // Título do gráfico
     svgFlow.append("text")
