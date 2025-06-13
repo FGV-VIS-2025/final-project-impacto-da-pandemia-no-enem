@@ -154,10 +154,17 @@ function flowChart_1(regions, data, filteredCategory) {
         .attr("height", d => d.y1 - d.y0)
         .style("fill", "transparent")
         .on("mouseover", function(event, d) {
-            tooltip.transition().duration(200);
-            tooltip.html(`Ano: ${d.ano}<br>Categoria: ${LOOKUP[variable][d.category]}<br>Inscrições: ${d3.format(",")(d.value)}`)
-                .style("left", (event.pageX + 10) + "px")
-                .style("top", (event.pageY - 28) + "px");
+            tooltip.transition().duration(200).style("opacity", 1);
+            console.log(variable)
+            if (variable === "all") {
+                tooltip.html(`Ano: ${d.ano}<br>Inscrições: ${d3.format(",")(d.value)}`)
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+            } else {
+                tooltip.html(`Ano: ${d.ano}<br>Categoria: ${LOOKUP[variable][d.category]}<br>Inscrições: ${d3.format(",")(d.value)}`)
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+            }
         })
         .on("mousemove", function(event) {
             tooltip.style("left", (event.pageX + 10) + "px")
@@ -175,7 +182,6 @@ function flowChart_1(regions, data, filteredCategory) {
                 barCharts(regions, data, d.category);
             }
         });
-
 
     // Título do gráfico
     svgFlow.append("text")
