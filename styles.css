@@ -628,6 +628,12 @@ html.dark-mode .paralel-axis {
     stroke: #ccc;
 }
 
+/* .overlay:hover {
+  stroke: black;
+  stroke-width: 2px;
+  cursor: pointer;
+} */
+
 /*------Para as colunas------*/
 @media (min-width: 700px){
     .layout {

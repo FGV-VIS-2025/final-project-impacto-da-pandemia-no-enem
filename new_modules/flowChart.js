@@ -1,8 +1,17 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 import * as utils from "./utils.js";
+import { barCharts } from "./bar-chart.js";
 const {LOOKUP, widthFlow, heightFlow, margin, svgFlow, containerFlow, tooltip} = utils;
 
-export function flowChart_1(regions = [], data, filteredCategory = null) {
+export function flowChart(regions = [], data, filteredCategory=null, type=1){
+    if (type === 1) {
+        flowChart_1(regions, data, filteredCategory);
+    } else if (type === 2) {
+        flowChart_2(regions, data, filteredCategory);
+    }
+};
+
+function flowChart_1(regions, data, filteredCategory) {
     const variable = Object.keys(data[0])[1];
 
     const filteredData = regions.length === 0 ? data : data.filter(d => regions.includes(d.UF));
@@ -26,15 +35,9 @@ export function flowChart_1(regions = [], data, filteredCategory = null) {
         aggregated[year].total += value;
     });
 
-    const maxTotal = d3.max(years, year => aggregated[year].total);
-
     const axisHeight = 200;
 
     svgFlow.selectAll("*").remove();
-
-    const thicknessScale = d3.scaleLinear()
-        .domain([0, maxTotal])
-        .range([0, axisHeight]);
 
     const xScale = d3.scalePoint()
         .domain(years)
@@ -44,25 +47,52 @@ export function flowChart_1(regions = [], data, filteredCategory = null) {
     const centerY = heightFlow / 2;
 
     let nodes = [];
-    years.forEach(year => {
-        const total = aggregated[year].total;
-        const thickness = thicknessScale(total); 
-        const ribbonYoffset = centerY - thickness / 2;
-        let cumulative = 0;
-        displayCategories.forEach(cat => {
-        const val = aggregated[year][cat];
-        const segmentHeight = total ? (val / total) * thickness : 0;
-        nodes.push({
-            ano: year,
-            category: cat,
-            value: val,
-            x: xScale(year),
-            y0: ribbonYoffset + cumulative,
-            y1: ribbonYoffset + cumulative + segmentHeight
+    if (filteredCategory) {
+        const maxCategoryValue = d3.max(years, year => aggregated[year][filteredCategory]);
+        
+        const thicknessScaleCategory = d3.scaleLinear()
+            .domain([0, maxCategoryValue])
+            .range([0, axisHeight]);
+        
+        years.forEach(year => {
+            const value = aggregated[year][filteredCategory];
+            const thickness = thicknessScaleCategory(value);
+            nodes.push({
+                ano: year,
+                category: filteredCategory,
+                value: value,
+                x: xScale(year),
+                y0: centerY - thickness / 2,
+                y1: centerY + thickness / 2
+            });
         });
-        cumulative += segmentHeight;
+    } else {
+        const maxTotal = d3.max(years, year => aggregated[year].total);
+
+        const thicknessScale = d3.scaleLinear()
+            .domain([0, maxTotal])
+            .range([0, axisHeight]);
+
+        years.forEach(year => {
+            const total = aggregated[year].total;
+            const thickness = thicknessScale(total); 
+            const ribbonYoffset = centerY - thickness / 2;
+            let cumulative = 0;
+            displayCategories.forEach(cat => {
+            const val = aggregated[year][cat];
+            const segmentHeight = total ? (val / total) * thickness : 0;
+            nodes.push({
+                ano: year,
+                category: cat,
+                value: val,
+                x: xScale(year),
+                y0: ribbonYoffset + cumulative,
+                y1: ribbonYoffset + cumulative + segmentHeight
+            });
+            cumulative += segmentHeight;
+            });
         });
-    });
+    }
 
     const series = displayCategories.map(cat => {
         return {
@@ -72,7 +102,7 @@ export function flowChart_1(regions = [], data, filteredCategory = null) {
         };
     });
 
-    const color = d3.scaleOrdinal(d3.schemeTableau10).domain(displayCategories);
+    const color = d3.scaleOrdinal(d3.schemeTableau10).domain(categories);
 
     // Gerador de área para desenhar os ribbons para cada categoria
     const area = d3.area()
@@ -111,8 +141,8 @@ export function flowChart_1(regions = [], data, filteredCategory = null) {
                .text(year);
     });
 
+    // Overlay de tooltip/ação para cada segmento (faixa)
     const overlayWidth = 30;
-
     svgFlow.selectAll("rect.overlay")
         .data(nodes)
         .enter()
@@ -124,19 +154,28 @@ export function flowChart_1(regions = [], data, filteredCategory = null) {
         .attr("height", d => d.y1 - d.y0)
         .style("fill", "transparent")
         .on("mouseover", function(event, d) {
-            console.log(LOOKUP[variable][d.category])
-            tooltip.transition().duration(200).style("opacity", 0.9);
+            tooltip.transition().duration(200);
             tooltip.html(`Ano: ${d.ano}<br>Categoria: ${LOOKUP[variable][d.category]}<br>Inscrições: ${d3.format(",")(d.value)}`)
                 .style("left", (event.pageX + 10) + "px")
                 .style("top", (event.pageY - 28) + "px");
         })
         .on("mousemove", function(event) {
             tooltip.style("left", (event.pageX + 10) + "px")
-                    .style("top", (event.pageY - 28) + "px");
+                .style("top", (event.pageY - 28) + "px");
         })
         .on("mouseout", function() {
             tooltip.transition().duration(500).style("opacity", 0);
+        })
+        .on("click", function(event, d) {
+            if (filteredCategory === d.category) {
+                flowChart_1(regions, data, null);
+                barCharts(regions, data, null);
+            } else {
+                flowChart_1(regions, data, d.category);
+                barCharts(regions, data, d.category);
+            }
         });
+
 
     // Título do gráfico
     svgFlow.append("text")
@@ -148,7 +187,7 @@ export function flowChart_1(regions = [], data, filteredCategory = null) {
         .text("Inscrições no ENEM por Categoria e Ano");
 }
 
-export function flowChart_2(regions = [], data, filteredCategory = null) {
+function flowChart_2(regions, data, filteredCategory) {
 
     const variable = Object.keys(data[0])[1];
     

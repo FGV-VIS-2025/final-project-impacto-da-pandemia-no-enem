@@ -1,10 +1,11 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 import * as utils from "./utils.js";
 import { createLegend } from "./legend.js";
+import { flowChart } from "./flowChart.js";
 const {LOOKUP, width, height, margin, svg, y, barsGroup, tooltip} = utils;
 
 
-export function barCharts(regions = [], data, filteredCategory) {
+export function barCharts(regions, data, filteredCategory) {
     const column = Object.keys(data[0])[1];
 
     let colorScale = d3.schemeTableau10; 
@@ -132,7 +133,7 @@ export function barCharts(regions = [], data, filteredCategory) {
             tooltip.transition().duration(400).style("opacity", 0);
         })
         .on("click", function(event, d) {
-            // Alterna o filtro: se já está filtrado, mostra tudo; senão, filtra
+            flowChart(regions, data, filteredCategory === d.key ? null : d.key);
             barCharts(regions, data, filteredCategory === d.key ? null : d.key);
         });
 
