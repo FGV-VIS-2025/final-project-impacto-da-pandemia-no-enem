@@ -5,7 +5,7 @@ import { flowChart } from "./flowChart.js";
 const {LOOKUP, width, height, margin, svg, y, barsGroup, tooltip} = utils;
 
 
-export function barCharts(regions, data, filteredCategory, flowType=null) {
+export function barCharts(regions, data, filteredCategory, flowType=1) {
     const column = Object.keys(data[0])[1];
 
     let colorScale = d3.schemeTableau10; 
@@ -134,11 +134,11 @@ export function barCharts(regions, data, filteredCategory, flowType=null) {
         })
         .on("click", function(event, d) {
             flowChart(regions, data, filteredCategory === d.key ? null : d.key, flowType);
-            barCharts(regions, data, filteredCategory === d.key ? null : d.key);
+            barCharts(regions, data, filteredCategory === d.key ? null : d.key, flowType);
         });
 
     if (column && column !== "all"){
-        createLegend(colorScale, column, regions, allCategories, filteredCategory, data);
+        createLegend(colorScale, column, regions, allCategories, filteredCategory, data, flowType);
     }
 
     const title = d3.select("#barchart-title");

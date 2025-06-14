@@ -3,7 +3,7 @@ import * as utils from "./utils.js";
 import { barCharts } from "./bar-chart.js";
 const {LOOKUP, widthFlow, heightFlow, margin, svgFlow, containerFlow, tooltip} = utils;
 
-export function flowChart(regions = [], data, filteredCategory=null, type=2){
+export function flowChart(regions = [], data, filteredCategory=null, type=1){
     if (type == 1) {
         flowChart_1(regions, data, filteredCategory);
     } else if (type == 2) {
@@ -279,7 +279,7 @@ function flowChart_2(regions, data, filteredCategory) {
     });
     
     // Escala de cores para atribuir uma cor a cada categoria
-    const color = d3.scaleOrdinal(d3.schemeTableau10).domain(displayCategories);
+    const color = d3.scaleOrdinal(d3.schemeTableau10).domain(categories);
 
     // Gerador de área para desenhar os ribbons (faixas) para cada categoria
     const area = d3.area()

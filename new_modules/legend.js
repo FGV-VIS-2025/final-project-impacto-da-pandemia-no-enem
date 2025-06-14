@@ -32,8 +32,8 @@ export function createLegend(colorScale, column, regions, allCategories, current
             .text(LOOKUP[column][currentFilter]);
 
         legendGroup.on("click", function() {
-            flowChart(regions, data, null, type=type);
-            barCharts(regions, data);
+            flowChart(regions, data, null, type);
+            barCharts(regions, data, null, type);
         });
     } else {
         allCategories.forEach((category, i) => {
@@ -55,7 +55,7 @@ export function createLegend(colorScale, column, regions, allCategories, current
 
             legendGroup.on("click", function() {
                 flowChart(regions, data, category, type);
-                barCharts(regions, data, category);
+                barCharts(regions, data, category, type);
             });
         });
     }
