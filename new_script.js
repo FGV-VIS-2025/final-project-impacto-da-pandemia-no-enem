@@ -1,5 +1,6 @@
 import { barCharts } from "./new_modules/bar-chart.js";
 import { updateHeatMap } from "./new_modules/heatMap.js";
+import { flowChart } from "./new_modules/flowChart.js";
 import * as utils from "./new_modules/utils.js";
 const { tooltip } = utils;
 
@@ -131,27 +132,30 @@ Promise.all([
 
     const dataList = [dataUF, dataCR, dataEC, dataFE, dataLoc, dataQ25, dataQ22, dataQ24, dataQ6, dataSexo, dataEsc];
 
-    barCharts([], "all", dataUF);
+    flowChart([], dataUF);
+    barCharts([], dataUF);
     updateHeatMap([]);
 
+
+    
     let selectedRegions = [];
 
     d3.select("#select-button").on("change", () => {
         const columnIndex = document.getElementById("select-button").value;
         const data = dataList[columnIndex];
-        const dataColumns = Object.keys(data[0]);
-        const column = dataColumns[1];
-
-        barCharts(selectedRegions, column, data);
+        flowChart(selectedRegions, data)
+        barCharts(selectedRegions, data);
     });
 
     // Configuração do botão "Remover Filtros"
     d3.select("#reset-button").on("click", () => {
         const selectButton = document.getElementById("select-button");
         selectButton.selectedIndex = 0;
-        const column = selectButton.options[0].value;
+        
         selectedRegions = [];
-        barCharts([], "all", dataSexo);
+
+        flowChart([], dataUF);
+        barCharts([], dataUF);
 
         svgMap.selectAll("path")
             .classed("selected", false)
@@ -245,10 +249,9 @@ Promise.all([
 
                 const columnIndex = document.getElementById("select-button").value;
                 const data = dataList[columnIndex];
-                const dataColumns = Object.keys(data[0]);
-                const column = dataColumns[1];
 
-                barCharts(selectedRegions, column, data);
+                flowChart(selectedRegions, data)
+                barCharts(selectedRegions, data);
                 updateHeatMap(selectedRegions);
 
                 if (selectedRegions.length == 27) { 
@@ -262,7 +265,7 @@ Promise.all([
 
                 if (selectedRegions.length > 0) {
                     document.getElementById("selected-regions").innerHTML = //TODO:Alterar sigla para nome ou tirar lower case
-                        `<div class="selected-title">${selectedRegions.join(", <br>").toLowerCase()}</div>`;
+                        `<div class="selected-title">${selectedRegions.join(", <br>").toUpperCase()}</div>`;
                 } else {
                     document.getElementById("selected-regions").innerHTML = "";
                 }

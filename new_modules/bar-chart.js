@@ -1,9 +1,12 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 import * as utils from "./utils.js";
+import { createLegend } from "./legend.js";
+import { flowChart } from "./flowChart.js";
 const {LOOKUP, width, height, margin, svg, y, barsGroup, tooltip} = utils;
 
 
-export function barCharts(regions = [], column = "all", data, filteredCategory) {
+export function barCharts(regions, data, filteredCategory) {
+    const column = Object.keys(data[0])[1];
 
     let colorScale = d3.schemeTableau10; 
     svg.selectAll(".legend").remove(); 
@@ -61,8 +64,8 @@ export function barCharts(regions = [], column = "all", data, filteredCategory) 
     svg.append("text")
         .attr("class", "x-label")
         .attr("text-anchor", "middle")
-        .attr("x", width / 2)
-        .attr("y", height - 6)
+        .attr("x", width / 2 + 24)
+        .attr("y", height - 18)
         .text("Ano")
         .style("font-weight", "normal");        
     
@@ -130,8 +133,8 @@ export function barCharts(regions = [], column = "all", data, filteredCategory) 
             tooltip.transition().duration(400).style("opacity", 0);
         })
         .on("click", function(event, d) {
-            // Alterna o filtro: se já está filtrado, mostra tudo; senão, filtra
-            barCharts(regions, column, data, filteredCategory === d.key ? null : d.key);
+            flowChart(regions, data, filteredCategory === d.key ? null : d.key);
+            barCharts(regions, data, filteredCategory === d.key ? null : d.key);
         });
 
     if (column && column !== "all"){
@@ -148,59 +151,4 @@ export function barCharts(regions = [], column = "all", data, filteredCategory) 
     else {
         title.text(" Quantidade de Inscrições do ENEM nos estados selecionados pela variável selecionada")
     }   
-}
-
-function createLegend(colorScale, column, regions, allCategories, currentFilter, data) {
-    svg.selectAll(".legend").remove();
-    
-    const legend = svg.append("g")
-        .attr("class", "legend")
-        .attr("transform", `translate(${width - margin.right - 140},${margin.top})`);
-
-    if (currentFilter) {
-        let index = allCategories.indexOf(currentFilter);
-        if (index < 0) index = 0; 
-
-        const legendGroup = legend.append("g")
-            .attr("class", "legend-item")
-            .attr("transform", `translate(0, 0)`);
-
-        legendGroup.append("rect")
-            .attr("class", "legend-rect")
-            .attr("width", 15)
-            .attr("height", 15)
-            .attr("fill", colorScale[index % 10]);
-
-        legendGroup.append("text")
-            .attr("class", "legend-text")
-            .attr("x", 20)
-            .attr("y", 12)
-            .text(LOOKUP[column][currentFilter]);
-
-        legendGroup.on("click", function() {
-            barCharts(regions, column, data);
-        });
-    } else {
-        allCategories.forEach((category, i) => {
-            const legendGroup = legend.append("g")
-                .attr("class", "legend-item")
-                .attr("transform", `translate(0, ${i * 20})`);
-
-            legendGroup.append("rect")
-                .attr("class", "legend-rect")
-                .attr("width", 15)
-                .attr("height", 15)
-                .attr("fill", colorScale[i % 10]);
-
-            legendGroup.append("text")
-                .attr("class", "legend-text")
-                .attr("x", 20)
-                .attr("y", 12)
-                .text(LOOKUP[column][category]);
-
-            legendGroup.on("click", function() {
-                barCharts(regions, column, data, category);
-            });
-        });
-    }
 }
