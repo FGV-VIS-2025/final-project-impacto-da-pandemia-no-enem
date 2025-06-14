@@ -147,6 +147,20 @@ Promise.all([
         barCharts(selectedRegions, data);
     });
 
+    d3.selectAll(".segmented-control button")
+      .on("click", function() {
+          d3.selectAll(".segmented-control button").classed("active", false);
+          d3.select(this).classed("active", true);
+          
+          const selectedType = this.value;
+          console.log(selectedType)
+          const columnIndex = document.getElementById("select-button").value;
+          const data = dataList[columnIndex];
+         
+          flowChart(selectedRegions, data, null, selectedType);
+          barCharts(selectedRegions, data, null, selectedType);
+    });
+
     // Configuração do botão "Remover Filtros"
     d3.select("#reset-button").on("click", () => {
         const selectButton = document.getElementById("select-button");
