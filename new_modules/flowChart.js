@@ -6,8 +6,8 @@ const {LOOKUP, widthFlow, heightFlow, margin, svgFlow, containerFlow, tooltip} =
 export function flowChart(regions = [], data, filteredCategory=null, type=1){
     if (type == 1) {
         flowChart_1(regions, data, filteredCategory);
-    } else if (type == 2) {
-        flowChart_2(regions, data, filteredCategory);
+    } else if (type > 1) {
+        flowChart_2(regions, data, filteredCategory, type);
     }
 };
 
@@ -203,7 +203,7 @@ function flowChart_1(regions, data, filteredCategory) {
     //     .text("Inscrições no ENEM por Categoria e Ano");
 }
 
-function flowChart_2(regions, data, filteredCategory) {
+function flowChart_2(regions, data, filteredCategory, type) {
 
     const variable = Object.keys(data[0])[1];
     
@@ -235,10 +235,7 @@ function flowChart_2(regions, data, filteredCategory) {
     
     svgFlow.selectAll("*").remove();
 
-    const commonScale = d3.scaleLinear()
-        .domain([0, globalMax])
-        .range([5, slotHeight * 0.8]);
-
+    
     const centerY = heightFlow / 2;
     const axisTop = centerY - axisHeight / 2;
     
@@ -252,22 +249,53 @@ function flowChart_2(regions, data, filteredCategory) {
         .padding(0.5);
     
     const nodes = [];
-    years.forEach(year => {
-        displayCategories.forEach((cat, catIndex) => {
-            const val = aggregated[year][cat];
-            const thickness = commonScale(val);
-            const center = categoryCenters[catIndex];
-            
-            nodes.push({
-                ano: year,
-                category: cat,
-                value: val,
-                x: xScale(year),
-                y0: center - thickness / 2,
-                y1: center + thickness / 2
+    if (type == 2) {
+        const commonScale = d3.scaleLinear()
+            .domain([0, globalMax])
+            .range([5, slotHeight * 0.8]);
+
+        years.forEach(year => {
+            displayCategories.forEach((cat, catIndex) => {
+                const val = aggregated[year][cat];
+                const thickness = commonScale(val);
+                const center = categoryCenters[catIndex];
+                
+                nodes.push({
+                    ano: year,
+                    category: cat,
+                    value: val,
+                    x: xScale(year),
+                    y0: center - thickness / 2,
+                    y1: center + thickness / 2
+                });
             });
         });
-    });
+    } else {
+        const categoryScales = {};
+        displayCategories.forEach(cat => {
+            const catMax = d3.max(years, year => aggregated[year][cat]);
+            categoryScales[cat] = d3.scaleLinear()
+                .domain([0, catMax])
+                .range([5, slotHeight * 0.8]);
+        });
+
+        years.forEach(year => {
+            displayCategories.forEach((cat, catIndex) => {
+                const val = aggregated[year][cat];
+                const thickness = categoryScales[cat](val);
+                const center = categoryCenters[catIndex];
+                
+                nodes.push({
+                    ano: year,
+                    category: cat,
+                    value: val,
+                    x: xScale(year),
+                    y0: center - thickness / 2,
+                    y1: center + thickness / 2
+                });
+            });
+        });
+    }
     
     // Agrupa os nós por categoria
     const series = displayCategories.map(cat => {
