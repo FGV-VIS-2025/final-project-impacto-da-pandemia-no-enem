@@ -35,7 +35,7 @@ function flowChart_1(regions, data, filteredCategory) {
         aggregated[year].total += value;
     });
 
-    const axisHeight = 150;
+    const axisHeight = 145;
 
     svgFlow.selectAll("*").remove();
 
@@ -122,8 +122,8 @@ function flowChart_1(regions, data, filteredCategory) {
     // Desenha os eixos verticais para cada ano com altura fixa
     years.forEach(year => {
         const x = xScale(year);
-        const axisTop = centerY - axisHeight / 2 - 10;
-        const axisBottom = centerY + axisHeight / 2 + 10;
+        const axisTop = centerY - axisHeight / 2 - 17.5;
+        const axisBottom = centerY + axisHeight / 2 + 17.5;
         svgFlow.append("line")
                .attr("class", "paralel-axis")
                .attr("x1", x)
@@ -312,8 +312,18 @@ function flowChart_2(regions, data, filteredCategory) {
                .attr("x", x)
                .attr("y", axisTop + axisHeight + 15)
                .attr("text-anchor", "middle")
-               .style("font-weight", "bold")
+               .style("font-weight", "normal")
                .text(year);
+        
+        svgFlow.append("text")
+               .attr("class", "y-label")
+               .attr("text-anchor", "middle")
+               .attr("transform", "rotate(-90)")
+               .attr("x", - heightFlow / 2)
+               .attr("y", margin.left / 2)
+               .attr("text-anchor", "middle")
+               .style("font-weight", "normal")
+               .text("Nº de Inscreições");       
     });
     
     const overlayWidth = 30;
