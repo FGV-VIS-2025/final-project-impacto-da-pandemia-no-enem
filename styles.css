@@ -408,6 +408,7 @@ html.dark-mode .tooltip {
 
 html.dark-mode .y-label {
     fill: #f1f5f9;
+    font-weight: normal;
 }
 
 .x-label{
@@ -417,6 +418,7 @@ html.dark-mode .y-label {
 
 html.dark-mode .x-label {
     fill: #f1f5f9;
+    font-weight: normal;
 }
 /*---------------------------*/
 
@@ -618,6 +620,7 @@ html.dark-mode .x-label {
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-bottom: 0px;
 }
 
 .paralel-axis {
@@ -634,6 +637,39 @@ html.dark-mode .paralel-axis {
 
 svg { 
     overflow: visible;
+}
+
+.segmented-control {
+    margin-top: -190px;
+    margin-bottom: 80px;
+}
+
+.segmented-control button {
+    padding: 6px 12px;
+    background-color: #19356a; 
+    color: #fff;
+    border: 2px solid transparent;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.segmented-control button:hover {
+    border-color: whitesmoke;
+}
+
+.segmented-control button.active {
+    background-color: whitesmoke;
+    cursor: default;
+    color: black;
+}
+
+html.dark-mode .segmented-control button.active {
+    background-color: #0f172a;
+    cursor: default;
+    border: none;
+    color: white;
 }
 
 /* .overlay:hover {

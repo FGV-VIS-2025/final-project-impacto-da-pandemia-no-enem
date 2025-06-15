@@ -137,14 +137,28 @@ Promise.all([
     updateHeatMap([]);
 
 
-    
+    let selectedType = 1;
     let selectedRegions = [];
 
     d3.select("#select-button").on("change", () => {
         const columnIndex = document.getElementById("select-button").value;
         const data = dataList[columnIndex];
-        flowChart(selectedRegions, data)
-        barCharts(selectedRegions, data);
+        flowChart(selectedRegions, data, null, selectedType)
+        barCharts(selectedRegions, data, null, selectedType);
+    });
+
+    d3.selectAll(".segmented-control button")
+      .on("click", function() {
+          d3.selectAll(".segmented-control button").classed("active", false);
+          d3.select(this).classed("active", true);
+          
+          selectedType = this.value;
+          console.log(selectedType)
+          const columnIndex = document.getElementById("select-button").value;
+          const data = dataList[columnIndex];
+         
+          flowChart(selectedRegions, data, null, selectedType);
+          barCharts(selectedRegions, data, null, selectedType);
     });
 
     // Configuração do botão "Remover Filtros"
@@ -153,6 +167,7 @@ Promise.all([
         selectButton.selectedIndex = 0;
         
         selectedRegions = [];
+        selectedType = 1;
 
         flowChart([], dataUF);
         barCharts([], dataUF);
@@ -250,8 +265,8 @@ Promise.all([
                 const columnIndex = document.getElementById("select-button").value;
                 const data = dataList[columnIndex];
 
-                flowChart(selectedRegions, data)
-                barCharts(selectedRegions, data);
+                flowChart(selectedRegions, data, null, selectedType);
+                barCharts(selectedRegions, data, null, selectedType);
                 updateHeatMap(selectedRegions);
 
                 if (selectedRegions.length == 27) { 
