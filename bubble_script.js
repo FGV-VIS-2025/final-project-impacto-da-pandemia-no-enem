@@ -40,12 +40,12 @@ window.addEventListener("DOMContentLoaded", () => {
 
 // Tamanho do SVG
 const width = 1000;
-const height = 700;
+const height = 600;
 
 // Projeção centrada no Brasil
 const projection = d3.geoMercator()
     .center([-54, -15]) // centro aproximado do Brasil
-    .scale(800)
+    .scale(650)
     .translate([width / 2, height / 2 - 65]);
 
 // Caminho geográfico
@@ -123,7 +123,7 @@ Promise.all([
         .join("path")
         .attr("d", path)
         .attr("fill", "#69b3a2")
-        .attr("stroke", "#333")
+        .attr("stroke", "#1f1f1f")
         .attr("stroke-width", 1)
         .on("mouseover", function(event, d) {
             d3.select(this)
@@ -132,12 +132,10 @@ Promise.all([
         .on("mouseout", function() {
             d3.select(this)
                 .attr("fill", "#69b3a2")
-                .attr("stroke", "#333")
+                .attr("stroke", "#1f1f1f")
                 .attr("stroke-width", 1);
         })
         .on("click", function(event, d) {
-            event.stopPropagation(); // Impede que o clique afete outros elementos
-            
             const current = d3.select(this);
             const isSelected = current.classed("selected");
             const uf = d.properties.sigla;
@@ -160,8 +158,8 @@ Promise.all([
             
             // Sincroniza as bolhas
             bolhasGroup.selectAll("circle")
-                .attr("stroke", d => selectedStates.includes(d.uf) ? "#333" : "none")
-                .attr("stroke-width", d => selectedStates.includes(d.uf) ? 4 : 0)
+                .attr("stroke", d => selectedStates.includes(d.uf) ? "#16082f" : "none")
+                .attr("stroke-width", d => selectedStates.includes(d.uf) ? 1 : 0)
                 .classed("selected", d => selectedStates.includes(d.uf));
         });
 
@@ -170,7 +168,7 @@ Promise.all([
     const maxVal = d3.max(Object.values(datasets).flat(), d => d.NUM_PARTICIPANTES);
     const escalaRaio = d3.scaleSqrt()
         .domain([0, maxVal])
-        .range([0, 10]);
+        .range([0, 9]);
 
     const tooltip = d3.select("#tooltip-map");
 
@@ -193,12 +191,12 @@ Promise.all([
             })
             .attr("r", 0)
             .attr("fill", "steelblue")
-            .attr("opacity", 0.75)
-            .attr("opacity", 0.75)
+            .attr("stroke", "#16082f") // Altera a cor do contorno 
+            .attr("stroke-width", 1)
             .on("mouseover", function (event, d) {
                 tooltip
                 .style("visibility", "visible")
-                .text(`Estado: ${d.nome} (${d.uf})\nRegião: ${d.regiao}\nNº de participantes: ${d.NUM_PARTICIPANTES.toLocaleString()}`);
+                .text(`Estado: ${d.nome} (${d.uf})\nRegião: ${d.regiao}\nNº de inscrições: ${d.NUM_PARTICIPANTES.toLocaleString()}`);
             })
             .on("mousemove", function (event) {
                 tooltip
@@ -209,15 +207,13 @@ Promise.all([
                 tooltip.style("visibility", "hidden");
             })
             .on("click", function(event, d) {
-                event.stopPropagation(); // Impede que o evento se propague para o mapa
-                
                 const current = d3.select(this);
                 const isSelected = current.classed("selected");
                 
                 // Alterna a classe "selected" e ajusta o visual
                 current.classed("selected", !isSelected)
-                        .attr("stroke", !isSelected ? "#333" : "none")
-                        .attr("stroke-width", !isSelected ? 2 : 0);
+                        .attr("stroke", !isSelected ? "#16082f" : "none")
+                        .attr("stroke-width", !isSelected ? 1 : 0);
                 
                 if (!isSelected) {
                     // Se não estiver selecionado, adiciona a UF à lista
@@ -235,19 +231,19 @@ Promise.all([
                 // Atualiza também o mapa para refletir a seleção
                 mapaGroup.selectAll("path")
                     .classed("selected", feature => selectedStates.includes(feature.properties.sigla))
-                    .attr("stroke-width", feature => selectedStates.includes(feature.properties.sigla) ? 3 : 1);
+                    .attr("stroke-width", feature => selectedStates.includes(feature.properties.sigla) ? 1 : 1);
             })
             .transition()
             .duration(500)
             .attr("r", d => escalaRaio(d.NUM_PARTICIPANTES))
-            .attr("stroke", d => selectedStates.includes(d.uf) ? "#333" : "none")
-            .attr("stroke-width", d => selectedStates.includes(d.uf) ? 2 : 0),
+            .attr("stroke", d => selectedStates.includes(d.uf) ? "#16082f" : "none")
+            .attr("stroke-width", d => selectedStates.includes(d.uf) ? 1 : 0),
 
             update => update
             .on("mouseover", function (event, d) {
                 tooltip
                 .style("visibility", "visible")
-                .text(`Estado: ${d.nome} (${d.uf})\nRegião: ${d.regiao}\nNº de participantes: ${d.NUM_PARTICIPANTES.toLocaleString()}`);
+                .text(`Estado: ${d.nome} (${d.uf})\nRegião: ${d.regiao}\nNº de inscrições: ${d.NUM_PARTICIPANTES.toLocaleString()}`);
             })
             .on("mousemove", function (event) {
                 tooltip
@@ -267,8 +263,8 @@ Promise.all([
                 return x;
             })
             .attr("cy", d => d.originalY)
-            .attr("stroke", d => selectedStates.includes(d.uf) ? "#333" : "none")
-            .attr("stroke-width", d => selectedStates.includes(d.uf) ? 2 : 0),
+            .attr("stroke", d => selectedStates.includes(d.uf) ? "#16082f" : "none")
+            .attr("stroke-width", d => selectedStates.includes(d.uf) ? 1 : 0),
 
             exit => exit
             .transition()
@@ -287,7 +283,7 @@ Promise.all([
             const d = hovered[0];
             tooltip
                 .style("visibility", "visible")
-                .text(`Estado: ${d.nome} (${d.uf})\nRegião: ${d.regiao}\nNº de participantes: ${d.NUM_PARTICIPANTES.toLocaleString()}`);
+                .text(`Estado: ${d.nome} (${d.uf})\nRegião: ${d.regiao}\nNº de inscrições: ${d.NUM_PARTICIPANTES.toLocaleString()}`);
         }
     }
 
@@ -534,7 +530,6 @@ Promise.all([
                         .on("mouseout", null)  // Ignora mouseout
                         .on("mousemove", null) // Ignora mousemove
                         .on("click", function(event) {
-                            event.stopPropagation();
                             handleBoxplotClick(d.uf);
                     });  
 
@@ -579,7 +574,7 @@ Promise.all([
             .text("Taxa de Presença");
         
         g.append("text")
-            .attr("transform", `translate(${width / 2}, ${height + margin.bottom - 100})`)
+            .attr("transform", `translate(${width / 2}, ${height + margin.bottom - 110})`)
             .style("text-anchor", "middle")
             .style("font-size", "12px")
             .style("font-weight", "bold")
@@ -610,8 +605,8 @@ Promise.all([
         
         // Atualiza as bolhas
         bolhasGroup.selectAll("circle")
-            .attr("stroke", d => selectedStates.includes(d.uf) ? "#333" : "none")
-            .attr("stroke-width", d => selectedStates.includes(d.uf) ? 2 : 0)
+            .attr("stroke", d => selectedStates.includes(d.uf) ? "#16082f" : "none")
+            .attr("stroke-width", d => selectedStates.includes(d.uf) ? 1 : 0)
             .classed("selected", d => selectedStates.includes(d.uf));
     }
 
