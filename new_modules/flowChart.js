@@ -30,7 +30,7 @@ function flowChart_1(regions, data, filteredCategory) {
     filteredData.forEach(d => {
         const year = d.ANO;
         const cat = d[variable];
-        const value = +d.QTD;
+        const value = +d.PARTICIPANTES;
         aggregated[year][cat] += value;
         aggregated[year].total += value;
     });
@@ -223,7 +223,7 @@ function flowChart_2(regions, data, filteredCategory, type) {
     filteredData.forEach(d => {
         const year = d.ANO;
         const cat = d[variable];
-        const val = +d.QTD;
+        const val = +d.PARTICIPANTES;
         aggregated[year][cat] += val;
     });
     
