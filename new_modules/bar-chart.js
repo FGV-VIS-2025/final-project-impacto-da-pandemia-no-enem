@@ -81,16 +81,16 @@ export function barCharts(regions, data, filteredCategory, flowType=1) {
 
     // Escala para subgrupos - usa displayCategories
     const xSubgroup = d3.scaleBand()
-        .domain(displayCategories)
-        .range([0, x.bandwidth()])
-        .padding(0.05);
+                        .domain(displayCategories)
+                        .range([0, x.bandwidth()])
+                        .padding(0.05);
 
     // Atualiza as barras
     const barGroups = barsGroup.selectAll(".chart-container")
-    .data(subscriptions)
-    .join("g")
-    .attr("class", "chart-container")
-    .attr("transform", d => `translate(${x(d.ano)}, 0)`);
+                               .data(subscriptions)
+                               .join("g")
+                               .attr("class", "chart-container")
+                               .attr("transform", d => `translate(${x(d.ano)}, 0)`);
 
 
     barGroups.selectAll("rect")
