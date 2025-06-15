@@ -115,6 +115,7 @@ Promise.all([
     }
 
     let selectedStates = [];
+    let boxplotSelection = null;
 
     // Desenha o mapa
     mapaGroup
@@ -136,27 +137,28 @@ Promise.all([
                 .attr("stroke-width", 1);
         })
         .on("click", function(event, d) {
-            event.stopPropagation(); // Impede que o clique afete outros elementos
-            
             const current = d3.select(this);
-            const isSelected = current.classed("selected");
             const uf = d.properties.sigla;
 
-            // Alterna a seleção
-            current.classed("selected", !isSelected)
-                    .transition().duration(300)
-                    .attr("stroke-width", !isSelected ? 3 : 1);
-
-            if (!isSelected) {
-                if (!selectedStates.includes(uf)) {
-                    selectedStates.push(uf);
-                }
-            } else {
-                selectedStates = selectedStates.filter(state => state !== uf);
+            if (boxplotSelection !== null) {
+                selectedStates = [boxplotSelection];
+                boxplotSelection = null;
             }
 
+            if (selectedStates.includes(uf)) {
+                selectedStates = selectedStates.filter(state => state !== uf);
+                current.classed("selected", false)
+                        .transition().duration(300)
+                        .attr("stroke-width", 1);
+            } else {
+                selectedStates.push(uf);
+                current.classed("selected", true)
+                        .transition().duration(300)
+                        .attr("stroke-width", 3);
+            }
+   
             // Atualiza o boxplot
-            updateBoxplot(currentYear, selectedStates);
+            updateBoxplot(currentYear);
             
             // Sincroniza as bolhas
             bolhasGroup.selectAll("circle")
@@ -212,26 +214,27 @@ Promise.all([
                 event.stopPropagation(); // Impede que o evento se propague para o mapa
                 
                 const current = d3.select(this);
-                const isSelected = current.classed("selected");
                 
-                // Alterna a classe "selected" e ajusta o visual
-                current.classed("selected", !isSelected)
-                        .attr("stroke", !isSelected ? "#333" : "none")
-                        .attr("stroke-width", !isSelected ? 2 : 0);
-                
-                if (!isSelected) {
-                    // Se não estiver selecionado, adiciona a UF à lista
-                    if (!selectedStates.includes(d.uf)) {
-                        selectedStates.push(d.uf);
-                    }
-                } else {
-                    // Se já estava selecionado, remove da lista
-                    selectedStates = selectedStates.filter(state => state !== d.uf);
+                if (boxplotSelection !== null) {
+                    selectedStates = [boxplotSelection];
+                    boxplotSelection = null;
+                }
+                console.log(d.uf, selectedStates)
+                if (selectedStates.includes(d.uf)) {
+                        selectedStates = selectedStates.filter(state => state !== d.uf);
+                        current.classed("selected", false)
+                                .attr("stroke", "none")
+                                .attr("stroke-width", 0);
+                }
+                else {
+                    selectedStates.push(d.uf);
+                    current.classed("selected", true)
+                            .attr("stroke", "#333")
+                            .attr("stroke-width", 2);
                 }
                 
                 // Atualiza o boxplot com os estados selecionados
-                updateBoxplot(currentYear, selectedStates);
-                
+                updateBoxplot(currentYear);
                 // Atualiza também o mapa para refletir a seleção
                 mapaGroup.selectAll("path")
                     .classed("selected", feature => selectedStates.includes(feature.properties.sigla))
@@ -276,10 +279,10 @@ Promise.all([
             .attr("r", 0)
             .remove()
         );
-
-        // Atualiza o boxplot
-        updateBoxplot(currentYear, selectedStates);
     }
+
+    // Atualiza o boxplot
+    updateBoxplot(currentYear);
 
     function atualizarTooltipSeHover() {
         const hovered = d3.select("circle:hover").data(); // pega os dados da bolha sob o mouse, se houver
@@ -329,7 +332,7 @@ Promise.all([
         };
     }
 
-    function updateBoxplot(year, selectedStates = []) {
+    function updateBoxplot(year) {
         const container = d3.select("#boxplot-presenca");
         const svg = container.select("svg");
         svg.selectAll("*").remove();
@@ -342,10 +345,10 @@ Promise.all([
         const height = containerHeight - margin.top - margin.bottom;
         
         svg.attr("width", containerWidth)
-        .attr("height", containerHeight);
+           .attr("height", containerHeight);
         
         const g = svg.append("g")
-                    .attr("transform", `translate(${margin.left},${margin.top})`);
+                     .attr("transform", `translate(${margin.left},${margin.top})`);
         
         // Obter e preparar dados
         let boxplotData = Object.keys(dadosPresenca[year] || {})
@@ -361,7 +364,9 @@ Promise.all([
             .filter(d => d.stats !== null);
         
         // Filtrar por estados selecionados se houver
-        if (selectedStates.length > 0) {
+        if (boxplotSelection !== null) {
+            boxplotData = boxplotData.filter(d => d.uf === boxplotSelection);
+        } else if (selectedStates.length > 0) {
             boxplotData = boxplotData.filter(d => selectedStates.includes(d.uf));
         }
         
@@ -376,39 +381,176 @@ Promise.all([
             .domain(ufsOrdenadas)
             .range([0, width])
             .padding(0.2);
-        
+
         const y = d3.scaleLinear()
-            .domain([0, 1]) // Taxa de presença varia de 0 a 1
+            .domain([0, 1]) 
             .range([height, 0])
             .nice();
-        
-            // Desenhar os boxplots com transições
-            boxplotData.forEach(d => {
-                const stats = d.stats;
-                
-                // Grupo para cada boxplot
-                const boxplotGroup = g.append("g")
-                    .attr("class", "boxplot")
-                    .attr("transform", `translate(${x(d.uf)},0)`);
 
-                if (d.values.length === 1) {
-                    // Caso especial para UFs com apenas 1 valor
-                    boxplotGroup.append("circle")
+        // Desenha o eixo X
+        g.append("g")
+         .attr("class", "x axis")
+         .attr("transform", `translate(0, ${height})`)
+         .call(d3.axisBottom(x))
+         .selectAll("text")
+         .attr("transform", "rotate(-45)")
+         .style("text-anchor", "end");
+
+        // Desenha o eixo Y
+        g.append("g")
+         .attr("class", "y axis")
+         .call(d3.axisLeft(y));
+
+        
+        // Desenha cada boxplot
+        boxplotData.forEach(d => {
+            const stats = d.stats;
+            
+            // Grupo para cada boxplot
+            const boxplotGroup = g.append("g")
+                .attr("class", "boxplot")
+                .attr("transform", `translate(${x(d.uf)},0)`);
+
+            boxplotGroup.on("click", function(event) {
+                            event.stopPropagation();
+                            
+                            if (boxplotSelection === d.uf || selectedStates.length === 1) {
+                                boxplotSelection = null;
+                                selectedStates = []; 
+                            } else {
+                                boxplotSelection = d.uf;
+                                selectedStates = [d.uf];
+                            }
+
+                            updateBoxplot(year);
+
+                            // Reflete a mudança no mapa:
+                            mapaGroup.selectAll("path")
+                                .classed("selected", feature => selectedStates.includes(feature.properties.sigla))
+                                .transition().duration(300)
+                                .attr("stroke-width", feature => selectedStates.includes(feature.properties.sigla) ? 3 : 1);
+                            updateBubbles(datasets[year]);
+                        });
+
+            if (d.values.length === 1) {
+                // Caso especial para UFs com apenas 1 valor
+                boxplotGroup.append("circle")
+                    .attr("cx", 0)
+                    .attr("cy", y(stats.singleValue))
+                    .attr("r", 0)
+                    .attr("fill", "#e15759")
+                    .attr("stroke", "#333")
+                    .attr("stroke-width", 1)
+                    .on("mouseover", function() {
+                    d3.select("#tooltip-boxplot")
+                        .style("visibility", "visible")
+                        .html(`UF: ${d.uf}<br>Valor único: ${stats.singleValue.toFixed(2)}`);
+                    })
+                    .on("mousemove", function(event) {
+                    d3.select("#tooltip-boxplot")
+                        .style("top", (event.pageY - 10) + "px")
+                        .style("left", (event.pageX + 10) + "px");
+                    })
+                    .on("mouseout", function() {
+                    d3.select("#tooltip-boxplot").style("visibility", "hidden");
+                    })
+                    .transition()
+                    .duration(500)
+                    .attr("cx", x.bandwidth() / 2)
+                    .attr("r", 3);
+            } else {
+                // Linha vertical (mínimo ao máximo) - com tooltip
+                boxplotGroup.append("line")
+                    .attr("x1", x.bandwidth() / 2)
+                    .attr("x2", x.bandwidth() / 2)
+                    .attr("y1", y(stats.min))
+                    .attr("y2", y(stats.max))
+                    .attr("stroke", "#999")
+                    .attr("stroke-width", 1)
+                    .on("mouseover", function() {
+                    d3.select("#tooltip-boxplot")
+                        .style("visibility", "visible")
+                        .html(`UF: ${d.uf}<br>Intervalo: ${stats.min.toFixed(2)} a ${stats.max.toFixed(2)}`);
+                    })
+                    .on("mousemove", function(event) {
+                    d3.select("#tooltip-boxplot")
+                        .style("top", (event.pageY - 10) + "px")
+                        .style("left", (event.pageX + 10) + "px");
+                    })
+                    .on("mouseout", function() {
+                    d3.select("#tooltip-boxplot").style("visibility", "hidden");
+                    })
+                    .style("pointer-events", "bounding-box");
+
+                // Caixa principal (Q1 a Q3) - com tooltip completo
+                boxplotGroup.append("rect")
+                    .attr("x", x.bandwidth() / 2)
+                    .attr("y", y(stats.q3))
+                    .attr("width", 0)
+                    .attr("height", y(stats.q1) - y(stats.q3))
+                    .attr("fill", "#4e79a7")
+                    .attr("stroke", "#333")
+                    .attr("stroke-width", 1)
+                    .on("mouseover", function() {
+                    d3.select("#tooltip-boxplot")
+                        .style("visibility", "visible")
+                        .html(`UF: ${d.uf}<br>
+                            Q1: ${stats.q1.toFixed(2)}<br>
+                            Mediana: ${stats.median.toFixed(2)}<br>
+                            Q3: ${stats.q3.toFixed(2)}<br>
+                            IQR: ${stats.iqr.toFixed(2)}`);
+                    })
+                    .on("mousemove", function(event) {
+                    d3.select("#tooltip-boxplot")
+                        .style("top", (event.pageY - 10) + "px")
+                        .style("left", (event.pageX + 10) + "px");
+                    })
+                    .on("mouseout", function() {
+                    d3.select("#tooltip-boxplot").style("visibility", "hidden");
+                    })
+                    .transition()
+                    .duration(500)
+                    .attr("x", x.bandwidth() * 0.1)
+                    .attr("width", x.bandwidth() * 0.8)
+                    .style("pointer-events", "bounding-box");
+
+                // Linha da mediana (sem tooltip próprio)
+                boxplotGroup.append("line")
+                    .attr("x1", x.bandwidth() / 2)
+                    .attr("x2", x.bandwidth() / 2)
+                    .attr("y1", y(stats.median))
+                    .attr("y2", y(stats.median))
+                    .attr("stroke", "#fff")
+                    .attr("stroke-width", 2)
+                    .attr("opacity", 0)
+                    .transition()
+                    .duration(500)
+                    .attr("opacity", 1)
+                    .attr("x1", x.bandwidth() * 0.1)
+                    .attr("x2", x.bandwidth() * 0.9);
+
+                // Outliers (com tooltips individuais)
+                if (stats.outliers.length > 0) {
+                    boxplotGroup.selectAll(".outlier")
+                        .data(stats.outliers)
+                        .enter()
+                        .append("circle")
+                        .attr("class", "outlier")
                         .attr("cx", 0)
-                        .attr("cy", y(stats.singleValue))
-                        .attr("r", 0)
+                        .attr("cy", dVal => y(dVal))
+                        .attr("r", 3)
                         .attr("fill", "#e15759")
                         .attr("stroke", "#333")
-                        .attr("stroke-width", 1)
-                        .on("mouseover", function() {
+                        .attr("stroke-width", 0.5)
+                        .on("mouseover", function(event, dVal) {
                             d3.select("#tooltip-boxplot")
-                                .style("visibility", "visible")
-                                .html(`UF: ${d.uf}<br>Valor único: ${stats.singleValue.toFixed(2)}`);
+                            .style("visibility", "visible")
+                            .html(`UF: ${d.uf}<br>Outlier: ${dVal.toFixed(2)}`);
                         })
                         .on("mousemove", function(event) {
                             d3.select("#tooltip-boxplot")
-                                .style("top", (event.pageY - 10) + "px")
-                                .style("left", (event.pageX + 10) + "px");
+                            .style("top", (event.pageY - 10) + "px")
+                            .style("left", (event.pageX + 10) + "px");
                         })
                         .on("mouseout", function() {
                             d3.select("#tooltip-boxplot").style("visibility", "hidden");
@@ -416,204 +558,12 @@ Promise.all([
                         .transition()
                         .duration(500)
                         .attr("cx", x.bandwidth() / 2)
-                        .attr("r", 3);
-                } else { 
-                    // Linha vertical (mínimo ao máximo) - com tooltip
-                    boxplotGroup.append("line")
-                        .attr("x1", x.bandwidth() / 2)
-                        .attr("x2", x.bandwidth() / 2)
-                        .attr("y1", y(stats.min))
-                        .attr("y2", y(stats.max))
-                        .attr("stroke", "#999")
-                        .attr("stroke-width", 1)
-                        .on("mouseover", function() {
-                            d3.select("#tooltip-boxplot")
-                                .style("visibility", "visible")
-                                .html(`UF: ${d.uf}<br>Intervalo: ${stats.min.toFixed(2)} a ${stats.max.toFixed(2)}`);
-                        })
-                        .on("mousemove", function(event) {
-                            d3.select("#tooltip-boxplot")
-                                .style("top", (event.pageY - 10) + "px")
-                                .style("left", (event.pageX + 10) + "px");
-                        })
-                        .on("mouseout", function() {
-                            d3.select("#tooltip-boxplot").style("visibility", "hidden");
-                        })
-                        .style("pointer-events", "bounding-box");    
-
-                    // Caixa principal (Q1 a Q3) - com tooltip completo
-                    boxplotGroup.append("rect")
-                        .attr("x", x.bandwidth() / 2)
-                        .attr("y", y(stats.q3))
-                        .attr("width", 0)
-                        .attr("height", y(stats.q1) - y(stats.q3))
-                        .attr("fill", "#4e79a7")
-                        .attr("stroke", "#333")
-                        .attr("stroke-width", 1)
-                        .on("mouseover", function() {
-                            d3.select("#tooltip-boxplot")
-                                .style("visibility", "visible")
-                                .html(`UF: ${d.uf}<br>
-                                    Q1: ${stats.q1.toFixed(2)}<br>
-                                    Mediana: ${stats.median.toFixed(2)}<br>
-                                    Q3: ${stats.q3.toFixed(2)}<br>
-                                    IQR: ${stats.iqr.toFixed(2)}`);
-                        })
-                        .on("mousemove", function(event) {
-                            d3.select("#tooltip-boxplot")
-                                .style("top", (event.pageY - 10) + "px")
-                                .style("left", (event.pageX + 10) + "px");
-                        })
-                        .on("mouseout", function() {
-                            d3.select("#tooltip-boxplot").style("visibility", "hidden");
-                        })
-                        .transition()
-                        .duration(500)
-                        .attr("x", x.bandwidth() * 0.1)
-                        .attr("width", x.bandwidth() * 0.8)
                         .style("pointer-events", "bounding-box");
-
-                    // Linha da mediana (sem tooltip próprio)
-                    boxplotGroup.append("line")
-                        .attr("x1", x.bandwidth() / 2)
-                        .attr("x2", x.bandwidth() / 2)
-                        .attr("y1", y(stats.median))
-                        .attr("y2", y(stats.median))
-                        .attr("stroke", "#fff")
-                        .attr("stroke-width", 2)
-                        .attr("opacity", 0)
-                        .transition()
-                        .duration(500)
-                        .attr("opacity", 1)
-                        .attr("x1", x.bandwidth() * 0.1)
-                        .attr("x2", x.bandwidth() * 0.9);   
-
-                    // Outliers (com tooltips individuais)
-                    if (stats.outliers.length > 0) {
-                        boxplotGroup.selectAll(".outlier")
-                            .data(stats.outliers)
-                            .enter()
-                            .append("circle")
-                            .attr("class", "outlier")
-                            .attr("cx", 0)
-                            .attr("cy", dVal => y(dVal))
-                            .attr("r", 3)
-                            .attr("fill", "#e15759")
-                            .attr("stroke", "#333")
-                            .attr("stroke-width", 0.5)
-                            .on("mouseover", function(event, dVal) {
-                                d3.select("#tooltip-boxplot")
-                                    .style("visibility", "visible")
-                                    .html(`UF: ${d.uf}<br>Outlier: ${dVal.toFixed(2)}`);
-                            })
-                            .on("mousemove", function(event) {
-                                d3.select("#tooltip-boxplot")
-                                    .style("top", (event.pageY - 10) + "px")
-                                    .style("left", (event.pageX + 10) + "px");
-                            })
-                            .on("mouseout", function() {
-                                d3.select("#tooltip-boxplot").style("visibility", "hidden");
-                            })
-                            .transition()
-                            .duration(500)
-                            .attr("cx", x.bandwidth() / 2)
-                            .style("pointer-events", "bounding-box");
-                    }
-                    const boxHeight = y(stats.min) - y(stats.max); // Altura desde o máximo até mínimo
-                    const boxTop = y(stats.max); // Posição Y do topo do boxplot
-
-                    // Área transparente para capturar cliques
-                    boxplotGroup.append("rect")
-                        .attr("x", 0)
-                        .attr("y", boxTop)
-                        .attr("width", x.bandwidth())
-                        .attr("height", boxHeight)
-                        .attr("fill", "transparent")
-                        .style("pointer-events", "all")
-                        .on("mouseover", null) // Ignora mouseover
-                        .on("mouseout", null)  // Ignora mouseout
-                        .on("mousemove", null) // Ignora mousemove
-                        .on("click", function(event) {
-                            event.stopPropagation();
-                            handleBoxplotClick(d.uf);
-                    });  
-
-                    boxplotGroup.selectAll(".outlier, line, rect:not([fill='transparent'])").raise();
                 }
-            });
-        
-        // Eixos
-        g.append("g")
-            .attr("class", "axis axis--x")
-            .attr("transform", `translate(0,${height})`)
-            .call(d3.axisBottom(x))
-            .selectAll("text")
-            .attr("transform", "rotate(-45)")
-            .style("text-anchor", "end")
-            .style("font-size", "10px")
-            .attr("dx", "-0.5em")
-            .attr("dy", "0.5em");
-        
-        g.append("g")
-            .attr("class", "axis axis--y")
-            .call(d3.axisLeft(y).ticks(5))
-            .style("font-size", "10px");
-        
-        // Títulos
-        g.append("text")
-            .attr("x", width / 2)
-            .attr("y", -10)
-            .attr("text-anchor", "middle")
-            .style("font-size", "16px")
-            .style("font-weight", "bold")
-            .text(`Distribuição das Taxas de Presença por UF - ${year}`);
-        
-        g.append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("y", -margin.left + 10)
-            .attr("x", -height / 2)
-            .attr("dy", "1em")
-            .style("text-anchor", "middle")
-            .style("font-size", "12px")
-            .style("font-weight", "bold")
-            .text("Taxa de Presença");
-        
-        g.append("text")
-            .attr("transform", `translate(${width / 2}, ${height + margin.bottom - 100})`)
-            .style("text-anchor", "middle")
-            .style("font-size", "12px")
-            .style("font-weight", "bold")
-            .text("Unidade Federativa (UF)");
+            }
+        });
     }
 
-    // Função para tratar o clique no boxplot
-    function handleBoxplotClick(uf) {
-        const index = selectedStates.indexOf(uf);
-        const isSelected = index !== -1;
-        
-        if (!isSelected) {
-            // Adiciona à seleção existente (não substitui)
-            selectedStates.push(uf);
-        } else {
-            // Remove apenas este UF da seleção
-            selectedStates = selectedStates.filter(state => state !== uf);
-        }
-        
-        // Atualiza o boxplot (que vai filtrar apenas os selecionados)
-        updateBoxplot(currentYear, selectedStates);
-        
-        // Atualiza o mapa
-        mapaGroup.selectAll("path")
-            .classed("selected", feature => selectedStates.includes(feature.properties.sigla))
-            .transition().duration(300)
-            .attr("stroke-width", feature => selectedStates.includes(feature.properties.sigla) ? 4 : 1);
-        
-        // Atualiza as bolhas
-        bolhasGroup.selectAll("circle")
-            .attr("stroke", d => selectedStates.includes(d.uf) ? "#333" : "none")
-            .attr("stroke-width", d => selectedStates.includes(d.uf) ? 2 : 0)
-            .classed("selected", d => selectedStates.includes(d.uf));
-    }
 
     // Slider
     d3.select("#yearSlider").on("input", function() {
@@ -629,8 +579,6 @@ Promise.all([
         .duration(300)
         .attr("opacity", 0)
         .remove();
-        
-        updateBoxplot(currentYear, selectedStates);
     });
 
     // Lógica para o botão play
