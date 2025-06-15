@@ -21,10 +21,10 @@ export function barCharts(regions, data, filteredCategory, flowType=1) {
     years.forEach((year, idx) => {
 
         let filteredYearData = filteredData.filter(d => d.ANO === year);
-        const obj = { ano: year, total: d3.sum(filteredYearData, d => +d.QTD) };
+        const obj = { ano: year, total: d3.sum(filteredYearData, d => +d.INSCRICOES) };
 
         allCategories.forEach((category, index) => {
-            obj[column + index] = d3.sum(filteredYearData.filter(d => d[column] === category), d => +d.QTD);
+            obj[column + index] = d3.sum(filteredYearData.filter(d => d[column] === category), d => +d.INSCRICOES);
         });
 
         subscriptions.push(obj);

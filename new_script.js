@@ -117,17 +117,17 @@ selectY.innerHTML = '<option value="all">- Selecione uma variável -</option>' +
 
 // Carreaga os arquivos CSV de 2019 e 2020
 Promise.all([
-    d3.csv("./data/data_graph/count_UF.csv"),
-    d3.csv("./data/data_graph/count_Q006.csv"),
-    d3.csv("./data/data_graph/count_Q022.csv"),
-    d3.csv("./data/data_graph/count_Q024.csv"),
-    d3.csv("./data/data_graph/count_Q025.csv"),
-    d3.csv("./data/data_graph/count_TP_COR_RACA.csv"),
-    d3.csv("./data/data_graph/count_TP_ESCOLA.csv"),
-    d3.csv("./data/data_graph/count_TP_ESTADO_CIVIL.csv"),
-    d3.csv("./data/data_graph/count_TP_FAIXA_ETARIA.csv"),
-    d3.csv("./data/data_graph/count_TP_LOCALIZACAO_ESC.csv"),
-    d3.csv("./data/data_graph/count_TP_SEXO.csv")
+    d3.csv("./data/data_graph_new/count_UF.csv"),
+    d3.csv("./data/data_graph_new/count_Q006.csv"),
+    d3.csv("./data/data_graph_new/count_Q022.csv"),
+    d3.csv("./data/data_graph_new/count_Q024.csv"),
+    d3.csv("./data/data_graph_new/count_Q025.csv"),
+    d3.csv("./data/data_graph_new/count_TP_COR_RACA.csv"),
+    d3.csv("./data/data_graph_new/count_TP_ESCOLA.csv"),
+    d3.csv("./data/data_graph_new/count_TP_ESTADO_CIVIL.csv"),
+    d3.csv("./data/data_graph_new/count_TP_FAIXA_ETARIA.csv"),
+    d3.csv("./data/data_graph_new/count_TP_LOCALIZACAO_ESC.csv"),
+    d3.csv("./data/data_graph_new/count_TP_SEXO.csv")
 ]).then(([dataUF, dataQ6, dataQ22, dataQ24, dataQ25, dataCR, dataEsc, dataEC, dataFE, dataLoc, dataSexo]) => {
 
     const dataList = [dataUF, dataCR, dataEC, dataFE, dataLoc, dataQ25, dataQ22, dataQ24, dataQ6, dataSexo, dataEsc];
