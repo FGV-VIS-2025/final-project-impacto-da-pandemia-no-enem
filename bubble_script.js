@@ -400,6 +400,32 @@ Promise.all([
          .attr("class", "y axis")
          .call(d3.axisLeft(y));
 
+        // Títulos
+        g.append("text")
+            .attr("x", width / 2)
+            .attr("y", -10)
+            .attr("text-anchor", "middle")
+            .style("font-size", "16px")
+            .style("font-weight", "bold")
+            .text(`Distribuição das Taxas de Presença por UF - ${year}`);
+        
+        g.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", -margin.left + 10)
+            .attr("x", -height / 2)
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .style("font-size", "12px")
+            .style("font-weight", "bold")
+            .text("Taxa de Presença");
+        
+        g.append("text")
+            .attr("transform", `translate(${width / 2}, ${height + margin.bottom - 110})`)
+            .style("text-anchor", "middle")
+            .style("font-size", "12px")
+            .style("font-weight", "bold")
+            .text("Unidade Federativa (UF)"); 
+
         
         // Desenha cada boxplot
         boxplotData.forEach(d => {
