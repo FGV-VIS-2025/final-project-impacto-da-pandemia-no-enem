@@ -7,9 +7,24 @@ const {LOOKUP, width, height, margin, svg} = utils;
 export function createLegend(colorScale, column, regions, allCategories, currentFilter, data, type=1) {
     svg.selectAll(".legend").remove();
     
-    const legend = svg.append("g")
-        .attr("class", "legend")
-        .attr("transform", `translate(${width - margin.right - 180},${margin.top - 20})`);
+    let legend;
+    if (window.innerWidth < 608) { 
+        legend = svg.append("g")
+            .attr("class", "legend")
+            .attr("transform", `translate(${width - margin.right - 150},${margin.top - 20})`);
+    } else if (window.innerWidth < 768) {
+        legend = svg.append("g")
+            .attr("class", "legend")
+            .attr("transform", `translate(${width - margin.right - 90},${margin.top - 20})`);
+    } else if (window.innerWidth < 1200) {
+        legend = svg.append("g")
+            .attr("class", "legend")
+            .attr("transform", `translate(${width - margin.right - 140},${margin.top - 20})`);
+    } else {
+        legend = svg.append("g")
+            .attr("class", "legend")
+            .attr("transform", `translate(${width - margin.right - 180},${margin.top - 20})`);
+    }
 
     if (currentFilter) {
         let index = allCategories.indexOf(currentFilter);

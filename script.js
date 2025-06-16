@@ -148,18 +148,22 @@ Promise.all([
     });
 
     d3.selectAll(".segmented-control button")
-      .on("click", function() {
-          d3.selectAll(".segmented-control button").classed("active", false);
-          d3.select(this).classed("active", true);
-          
-          selectedType = this.value;
-          console.log(selectedType)
-          const columnIndex = document.getElementById("select-button").value;
-          const data = dataList[columnIndex];
-         
-          flowChart(selectedRegions, data, null, selectedType);
-          barCharts(selectedRegions, data, null, selectedType);
+        .on("click", function() {
+            d3.selectAll(".segmented-control button").classed("active", false);
+            d3.select(this).classed("active", true);
+            
+            selectedType = this.value;
+            console.log(selectedType)
+            const columnIndex = document.getElementById("select-button").value;
+            const data = dataList[columnIndex];
+            
+            flowChart(selectedRegions, data, null, selectedType);
+            barCharts(selectedRegions, data, null, selectedType);
     });
+
+    
+    window.addEventListener("resize", d3.selectAll(".segmented-control button"));
+
 
     // Configuração do botão "Remover Filtros"
     d3.select("#reset-button").on("click", () => {
