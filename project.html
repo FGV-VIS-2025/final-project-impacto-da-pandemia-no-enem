@@ -103,7 +103,7 @@
       <div map-containter style="display: flex; justify-content: center;">
         <div class="map-pane">
 
-          <h2>Mapa do Brasil por Estados</h2>
+          <h2 id="map-title">Mapa do Brasil por Estados</h2>
           <h3>Selecione um ou mais estados para filtrar</h3>
           <div id="map-container"></div>
           <div id="control-panel">
@@ -141,6 +141,11 @@
           possível visualizar somente uma categoria específica da variável selecionada. Para isso, basta clicar na barra
           ou no ítem da legenda correspondente à categoria desejada.
           <p>
+          <p>
+            Além disso, como mencionado anteriormente, o <a href="#map-title">mapa</a> interativo do Brasil permite que
+            o usuário foque suas
+            análises em apenas uma região específica do país.
+          </p>
         </section>
 
         <section class="project-graphic">
@@ -171,29 +176,6 @@
 
         <section class="about-text">
           <p>
-            A segunda visualização consiste em um gráfico de barras que, a princípio, exibe a quantidade de inscrições
-            ocorridas
-            no Brasil entre 2019 e 2023. Próximo ao gráfico, há um botão que permite ao usuário selecionar uma
-            variável para ser visualizada. As variáveis disponíveis para seleção são:
-          <ul>
-            <li>Cor ou Raça</li>
-            <li>Estado civil</li>
-            <li>Faixa etária</li>
-            <li>Localização da escola</li>
-            <li>Possui internet</li>
-            <li>Celulares na residência</li>
-            <li>Computadores na residência</li>
-            <li>Renda</li>
-            <li>Sexo</li>
-            <li>Tipo de escola</li>
-          </ul>
-          Ao selecionar uma variável, o gráfico de barras será atualizado para exibir a quantidade de inscrições
-          ocorridas
-          entre 2019 e 2023 para cada categoria da variável selecionada, formando um gráfico de barras agrupadas. Também
-          é
-          possível visualizar somente uma categoria específica da variável selecionada. Para isso, basta clicar na barra
-          ou no ítem da legenda correspondente à categoria desejada.
-          <p>
             A terceira visualização consiste em um heatmap. A princípio, o heatmap está vazio. O usuário poderá, então,
             selecionar duas variáveis, uma para o eixo X e outra para o eixo Y, tendo acesso a análises cruzadas mais
             detalhadas
@@ -212,6 +194,10 @@
             <li>Sexo</li>
             <li>Tipo de escola</li>
           </ul>
+          </p>
+          <p>
+            O heatmap também possui integração com o <a href="#map-title">mapa</a> do Brasil. Ao selecionar
+            qualquer região do mapa, o heatmap será atualizado para exibir somente os dados referentes àquela região.
           </p>
         </section>
 
@@ -288,12 +274,10 @@
       </p>
       <p>
         Ao seu lado, há um boxplot de taxas de presença por município de cada estado brasileiro.
-        Por meio do mapa, é possível selecionar estados de modo que o boxplot só exibirá dados 
+        Por meio do mapa, é possível selecionar estados de modo que o boxplot só exibirá dados
         para os estados selecionados.
       </p>
     </section>
-
-    <div id="boxplot-container" style="display: none;"></div>
 
     <h2 style="text-align: center;">Quantidade de participantes do Enem no Brasil</h2>
 
