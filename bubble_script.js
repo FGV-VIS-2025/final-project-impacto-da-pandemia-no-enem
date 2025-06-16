@@ -31,31 +31,28 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
     if (current === 'auto') {
         applyTheme('auto');
     }
-});
-
-window.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("variable1").selectedIndex = 0;
-    document.getElementById("variable2").selectedIndex = 0;
-});    
+});  
 
 // Tamanho do SVG
-const width = 1000;
-const height = 600;
+const width = 1300;
+const height = 900;
 
 // Projeção centrada no Brasil
 const projection = d3.geoMercator()
     .center([-54, -15]) // centro aproximado do Brasil
-    .scale(650)
+    .scale(1000)
     .translate([width / 2, height / 2 - 65]);
 
 // Caminho geográfico
 const path = d3.geoPath().projection(projection);
 
-// Criar o SVG
 const svg = d3.select("#mapa")
     .append("svg")
-    .attr("width", width)
-    .attr("height", height);
+    .attr("width", "100%")
+    .attr("height", "100%")
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("preserveAspectRatio", "xMidYMid meet");
+
 
 // Grupos para o mapa e bolhas
 const mapaGroup = svg.append("g");
@@ -117,6 +114,27 @@ Promise.all([
     let selectedStates = [];
     let boxplotSelection = null;
 
+    // Botão para remover todos os filtros
+    document.getElementById('resetFilters').addEventListener('click', function() {
+        // Limpa as seleções
+        selectedStates = [];
+        boxplotSelection = null;
+        
+        // Atualiza o mapa
+        mapaGroup.selectAll("path")
+            .classed("selected", false)
+            .attr("stroke-width", 1);
+        
+        // Atualiza as bolhas
+        bolhasGroup.selectAll("circle")
+            .attr("stroke", "none")
+            .attr("stroke-width", 0)
+            .classed("selected", false);
+        
+        // Atualiza o boxplot
+        updateBoxplot(currentYear);
+    });
+
     // Desenha o mapa
     mapaGroup
         .selectAll("path")
@@ -149,7 +167,7 @@ Promise.all([
                 selectedStates = selectedStates.filter(state => state !== uf);
                 current.classed("selected", false)
                         .transition().duration(300)
-                        .attr("stroke-width", 1);
+                        .attr("stroke-width", 3);
             } else {
                 selectedStates.push(uf);
                 current.classed("selected", true)
@@ -163,7 +181,7 @@ Promise.all([
             // Sincroniza as bolhas
             bolhasGroup.selectAll("circle")
                 .attr("stroke", d => selectedStates.includes(d.uf) ? "#16082f" : "none")
-                .attr("stroke-width", d => selectedStates.includes(d.uf) ? 1 : 0)
+                .attr("stroke-width", d => selectedStates.includes(d.uf) ? 3 : 0)
                 .classed("selected", d => selectedStates.includes(d.uf));
         });
 
@@ -172,7 +190,7 @@ Promise.all([
     const maxVal = d3.max(Object.values(datasets).flat(), d => d.NUM_PARTICIPANTES);
     const escalaRaio = d3.scaleSqrt()
         .domain([0, maxVal])
-        .range([0, 9]);
+        .range([0, 13]);
 
     const tooltip = d3.select("#tooltip-map");
 
@@ -197,7 +215,7 @@ Promise.all([
             .attr("fill", "steelblue")
             .attr("opacity", 0.75)
             .attr("stroke", "#16082f") 
-            .attr("stroke-width", 1)
+            .attr("stroke-width", 2)
             .on("mouseover", function (event, d) {
                 tooltip
                 .style("visibility", "visible")
@@ -236,13 +254,13 @@ Promise.all([
                 updateBoxplot(currentYear);
                 mapaGroup.selectAll("path")
                     .classed("selected", feature => selectedStates.includes(feature.properties.sigla))
-                    .attr("stroke-width", feature => selectedStates.includes(feature.properties.sigla) ? 1 : 1);
+                    .attr("stroke-width", feature => selectedStates.includes(feature.properties.sigla) ? 3 : 1);
             })
             .transition()
             .duration(500)
             .attr("r", d => escalaRaio(d.NUM_PARTICIPANTES))
             .attr("stroke", d => selectedStates.includes(d.uf) ? "#16082f" : "none")
-            .attr("stroke-width", d => selectedStates.includes(d.uf) ? 1 : 0),
+            .attr("stroke-width", d => selectedStates.includes(d.uf) ? 3 : 0),
 
             update => update
             .on("mouseover", function (event, d) {
@@ -269,7 +287,7 @@ Promise.all([
             })
             .attr("cy", d => d.originalY)
             .attr("stroke", d => selectedStates.includes(d.uf) ? "#16082f" : "none")
-            .attr("stroke-width", d => selectedStates.includes(d.uf) ? 1 : 0),
+            .attr("stroke-width", d => selectedStates.includes(d.uf) ? 3 : 0),
 
             exit => exit
             .transition()
@@ -338,13 +356,16 @@ Promise.all([
         
         const margin = { top: 40, right: 10, bottom: 150, left: 60 };
         const containerWidth = container.node().getBoundingClientRect().width;
-        const containerHeight = container.node().getBoundingClientRect().height;
+        //const containerHeight = container.node().getBoundingClientRect().height;
+        const containerHeight = 540;
         
         const width = containerWidth - margin.left - margin.right;
         const height = containerHeight - margin.top - margin.bottom;
         
         svg.attr("width", containerWidth)
-           .attr("height", containerHeight);
+           .attr("height", containerHeight)
+           .attr("viewBox", `0 0 ${containerWidth} ${containerHeight}`)
+           .attr("preserveAspectRatio", "xMidYMid meet");
         
         const g = svg.append("g")
                      .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -437,24 +458,28 @@ Promise.all([
                 .attr("transform", `translate(${x(d.uf)},0)`);
 
             boxplotGroup.on("click", function(event) {
-                            event.stopPropagation();
-                            
-                            if (boxplotSelection === d.uf || selectedStates.length === 1) {
-                                boxplotSelection = null;
-                                selectedStates = []; 
-                            } else {
-                                boxplotSelection = d.uf;
-                                selectedStates = [d.uf];
-                            }
+                event.stopPropagation();
+                const clickedUF = d.uf;
+                
+                // Se já está selecionado, remove da seleção
+                if (selectedStates.includes(clickedUF)) {
+                    selectedStates = selectedStates.filter(uf => uf !== clickedUF);
+                    boxplotSelection = null;
+                } 
+                // Se não está selecionado, adiciona mantendo os existentes
+                else {
+                    selectedStates.push(clickedUF);
+                    boxplotSelection = clickedUF;
+                }
 
-                            // Atualiza todo mundo
-                            updateBoxplot(year);
-                            mapaGroup.selectAll("path")
-                                .classed("selected", feature => selectedStates.includes(feature.properties.sigla))
-                                .transition().duration(300)
-                                .attr("stroke-width", feature => selectedStates.includes(feature.properties.sigla) ? 3 : 1);
-                            updateBubbles(datasets[year]);
-                        });
+                // Atualiza todo mundo
+                updateBoxplot(year);
+                mapaGroup.selectAll("path")
+                    .classed("selected", feature => selectedStates.includes(feature.properties.sigla))
+                    .transition().duration(300)
+                    .attr("stroke-width", feature => selectedStates.includes(feature.properties.sigla) ? 3 : 1);
+                updateBubbles(datasets[year]);
+            });
 
             if (d.values.length === 1) {
                 // Caso especial para UFs com apenas 1 valor
