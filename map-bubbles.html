@@ -71,8 +71,8 @@
         }
 
         .ball {
-            width: 47px; 
-            height: 47px; 
+            width: 43px; 
+            height: 43px; 
             background-color: steelblue; 
             border-radius: 50%; 
             margin-right: 5px;
@@ -83,11 +83,6 @@
             color: #555;
             margin-right: 5px;
         }
-/* 
-        #mapa svg {
-            width: 100%;
-            height: auto;
-        } */
 
         #mapa {
             cursor: pointer;
@@ -99,7 +94,6 @@
             gap: 10px;
             margin: 10px auto;
             max-width: 1600px;
-            /* padding: 0 10px; */
         }
 
         .tooltip-map {
@@ -112,7 +106,6 @@
             pointer-events: none;
             visibility: hidden;
             white-space: pre-line;
-            /* text-align: left; */
         }
 
         .tooltip-boxplot {
@@ -151,6 +144,31 @@
             margin: 20px;
         }
 
+        .boxplot {
+            cursor: pointer;
+        }
+
+        #yearSlider {
+            cursor: pointer;
+        }
+
+        #playButton,
+        #resetFilters {
+            padding: 6px 12px;
+            background-color: #19356a; 
+            color: #fff;
+            border: 2px solid transparent;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        #playButton:hover,
+        #resetFilters:hover {
+            border-color: whitesmoke;
+        }
+
         @media only screen and (max-width: 768px) {
             #bubble-container {
                 grid-template-columns: 1fr;
@@ -167,8 +185,8 @@
             }
 
             .ball {
-                width: 30px; 
-                height: 30px; 
+                width: 53px; 
+                height: 53px; 
             }
             
             .ball-text {
