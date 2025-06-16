@@ -41,13 +41,17 @@ const height = 900;
 let center, scale, translate;
 
 if (window.innerWidth < 768) { 
-  center = [-54, -15];
-  scale = 1200;
-  translate = [width / 2, height / 2 - 30]; 
+    center = [-54, -15];
+    scale = 1200;
+    translate = [width / 2, height / 2 - 30]; 
+} else if (window.innerWidth < 1200) {
+    center = [-54, -10];
+    scale = 1400;
+    translate = [width / 2, height / 2 - 65];
 } else {
-  center = [-54, -20];
-  scale = 1400;
-  translate = [width / 2, height / 2 - 65];
+    center = [-54, -20];
+    scale = 1400;
+    translate = [width / 2, height / 2 - 65];
 }
 
 const projection = d3.geoMercator()
@@ -60,8 +64,6 @@ const path = d3.geoPath().projection(projection);
 
 const svg = d3.select("#mapa")
     .append("svg")
-    .attr("width", "100%")
-    .attr("height", "100%")
     .attr("viewBox", `0 0 ${width} ${height}`)
     .attr("preserveAspectRatio", "xMidYMid meet");
 
