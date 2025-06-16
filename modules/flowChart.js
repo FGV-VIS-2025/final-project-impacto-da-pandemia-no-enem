@@ -41,7 +41,7 @@ function flowChart_1(regions, data, filteredCategory) {
 
     const xScale = d3.scalePoint()
         .domain(years)
-        .range([-50, widthFlow + 50])
+        .range([0, widthFlow])
         .padding(0.5);
 
     const centerY = heightFlow / 2;
@@ -245,7 +245,7 @@ function flowChart_2(regions, data, filteredCategory, type) {
     // Escala horizontal para posicionar os anos
     const xScale = d3.scalePoint()
         .domain(years)
-        .range([-50, widthFlow + 50])
+        .range([0, widthFlow])
         .padding(0.5);
     
     const nodes = [];
