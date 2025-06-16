@@ -1,138 +1,182 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Impacto da Pandemia no ENEM</title>
-  <script>
-    (function () {
-      try {
-        const savedTheme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Impacto da Pandemia no ENEM</title>
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-          document.documentElement.classList.add('dark-mode');
-        }
-      } catch (e) {}
-    })();
-  </script>
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://d3js.org/d3.v7.min.js"></script>
+                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                    document.documentElement.classList.add('dark-mode');
+                }
+            } catch (e) { }
+        })();
+    </script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
+
 <body>
-  <header>
-    <nav class="navbar">
-      <ul>
-        <li><a href="index.html">Introdução</a></li>
-        <li><a href="project.html">Projeto</a></li>
-        <li><a href="new_project.html">Novo Projeto</a></li>
-        <li><a href="map-bubbles.html">Mapa de Bolhas</a></li>
-        <li><a href="authors.html">Autores</a></li>
-        <li><a href="https://github.com/FGV-VIS-2025/tarefa-4-impacto_da_pandemia_no_enem" target="_blank">GitHub</a></li>
-      </ul>
-      <select id="theme-select">
-        <option value="auto">🌗 Automático</option>
-        <option value="light">🌞 Claro</option>
-        <option value="dark">🌙 Escuro</option>
-      </select>  
-    </nav>
-  </header>
+    <header>
+        <nav class="navbar">
+            <ul>
+                <li><a href="index.html">Introdução</a></li>
+                <li><a href="old_project/project.html">Projeto Antigo</a></li>
+                <li><a href="project.html">Projeto</a></li>
+                <li><a href="map-bubbles.html">Mapa de Bolhas</a></li>
+                <li><a href="authors.html">Autores</a></li>
+                <li><a href="https://github.com/FGV-VIS-2025/final-project-impacto-da-pandemia-no-enem"
+                        target="_blank">GitHub</a>
+                </li>
+            </ul>
+            <select id="theme-select">
+                <option value="auto">🌗 Automático</option>
+                <option value="light">🌞 Claro</option>
+                <option value="dark">🌙 Escuro</option>
+            </select>
+        </nav>
+    </header>
 
-  <main class="main-content">
-    <div class="layout">
-      <!-- Coluna esquerda fixa: Mapa -->
-      <div class="map-pane">
-        <h2>Minas Gerais por Mesorregiões</h2>
-        <h3>Selecione uma região para filtrar</h3>
-        <div id="map-container"></div>
-        <div id="control-panel">
-          <button id="reset-button">Remover Filtros</button>
-          <div id="selected-regions"></div>
+    <main class="main-content">
+        <div class="layout">
+            <!-- Coluna esquerda fixa: Mapa -->
+            <div class="map-pane">
+                <h2>Mapa do Brasil por Estados</h2>
+                <h3>Selecione um ou mais estados para filtrar</h3>
+                <div id="map-container"></div>
+                <div id="control-panel">
+                    <button id="reset-button">Remover Filtros</button>
+                    <div id="selected-regions"></div>
+                </div>
+            </div>
+
+            <!-- Coluna direita com gráficos e seções -->
+            <div class="charts-pane">
+                <p class="about-text">As visualizações a seguir tem como propósito permitir que o usuário consiga
+                    analisar o quanto a pandemia de COVID-19 afetou o número de inscrições no ENEM no Brasil de 
+                    acordo com qualquer uma das variáveis disponíveis para seleção. Para isso, basta que o usuário 
+                    selecione uma variável na caixa de seleção e, caso deseje, selecione uma ou mais regiões no mapa.
+                    Uma vez que os filtros sejam aplicados, ainda é possível comparar uma determinada categoria
+                    de uma variável em um ano com os outros disponíveis.
+                </p>
+
+                <section class="project-graphic">
+                    <h2 id="barchart-title"></h2>
+                    <select id="select-button">
+                        <option value=0>- Selecione uma variável -</option>
+                        <option value=1>Cor ou Raça</option>
+                        <option value=2>Estado Civíl</option>
+                        <option value=3>Faixa Etária</option>
+                        <option value=4>Localização da Escola</option>
+                        <option value=5>Possui internet</option>
+                        <option value=6>Celulares na residência</option>
+                        <option value=7>Computadores na residência</option>
+                        <option value=8>Renda</option>
+                        <option value=9>Sexo</option>
+                        <option value=10>Tipo de escola</option>
+                    </select>
+
+                    <div id="chart-container"></div>
+                    <div id="flow-chart"></div>
+                    
+                    <div class="segmented-control">
+                      <button value= 1 class="active">Faixas Unidas</button>
+                      <button value= 2>Faixas Separadas (prop. entre faixas)</button>
+                      <button value= 3>Faixas Separadas (prop. dentro da faixa)</button>
+                    </div>
+                </section>
+
+                <section class="heatmap-container">
+                    <p class="about-text">
+                        É interessante observar como em 2020, o número de inscrições no ENEM foi
+                        maior do que em qualquer um dos outros anos comparados, mesmo com o contexto
+                        pandemico do ano. Os efeitos que a pandmia teve são mais perceptiveis no ano
+                        de 2021, onde o número de inscrições caiu drasticamente.
+                    </p>
+                    <p class="about-text">
+                        A segunda visualização, abaixo, consiste em um mapa de calor, que serve como 
+                        base para análises cruzadas mais detalhadas. O usuário pode selecionar duas
+                        variáveis (do mesmo conjunto permitido no gráfico anterior), uma para o eixo X
+                        e outra para o eixo Y. O mapa de calor exibirá automaticamente a quantidade de
+                        inscrições ocorridas para cada combinação de categorias das variáveis na região do
+                        mapa selecionada para cada um dos 5 anos.
+                    </p>
+
+                    <h2 id="heatmap-title">Quantidade de inscrições no ENEM por variáveis e regiões selecionadas</h2>
+                    <div>
+                        <label>Eixo X:</label>
+                        <select id="variable1">
+                            <option value="all">- Selecione uma variável -</option>
+                            <option value="TP_COR_RACA">Cor ou Raça</option>
+                            <option value="TP_ESTADO_CIVIL">Estado Civil</option>
+                            <option value="TP_FAIXA_ETARIA">Faixa Etária</option>
+                            <option value="TP_LOCALIZACAO_ESC">Localização da Escola</option>
+                            <option value="Q025">Possui internet</option>
+                            <option value="Q022">Celulares na residência</option>
+                            <option value="Q024">Computadores na residência</option>
+                            <option value="Q006">Renda</option>
+                            <option value="TP_SEXO">Sexo</option>
+                            <option value="TP_ESCOLA">Tipo de escola</option>
+                        </select>
+                    </div>
+                    <div style="padding: 3px">
+                        <label>Eixo Y:</label>
+                        <select id="variable2">
+                            <option value="all">- Selecione uma variável -</option>
+                            <option value="TP_COR_RACA">Cor ou Raça</option>
+                            <option value="TP_ESTADO_CIVIL">Estado Civil</option>
+                            <option value="TP_FAIXA_ETARIA">Faixa Etária</option>
+                            <option value="TP_LOCALIZACAO_ESC">Localização da Escola</option>
+                            <option value="Q025">Possui internet</option>
+                            <option value="Q022">Celulares na residência</option>
+                            <option value="Q024">Computadores na residência</option>
+                            <option value="Q006">Renda</option>
+                            <option value="TP_SEXO">Sexo</option>
+                            <option value="TP_ESCOLA">Tipo de escola</option>
+                        </select>
+                    </div>
+                    <div id="heatmaps">
+                        <div class="heatmap-wrapper">
+                            <h3>2019</h3>
+                            <svg id="heatmap2019"></svg>
+                        </div>
+                        <div class="heatmap-wrapper">
+                            <h3>2020</h3>
+                            <svg id="heatmap2020"></svg>
+                        </div>
+                    </div>
+                    <div id="colorbar">
+                        <svg id="colorbar"></svg>
+                    </div>
+                    <div id="heatmaps" , style="margin-top: -6rem">
+                        <div class="heatmap-wrapper">
+                            <h3>2021</h3>
+                            <svg id="heatmap2021"></svg>
+                        </div>
+                        <div class="heatmap-wrapper">
+                            <h3>2022</h3>
+                            <svg id="heatmap2022"></svg>
+                        </div>
+                        <div class="heatmap-wrapper">
+                            <h3>2023</h3>
+                            <svg id="heatmap2023"></svg>
+                        </div>
+                    </div>
+                </section>
+            </div>
         </div>
-      </div>
-  
-      <!-- Coluna direita com gráficos e seções -->
-      <div class="charts-pane">
-        <section class="project-graphic">
-          <h2 id="barchart-title"></h2>
-          <select id="select-button">
-            <option value="all">- Selecione uma variável -</option>
-            <option value="TP_COR_RACA">Cor ou Raça</option>
-            <option value="TP_ESTADO_CIVIL">Estado Civíl</option>
-            <option value="TP_FAIXA_ETARIA">Faixa Etária</option>
-            <option value="TP_LOCALIZACAO_ESC">Localização da Escola</option>
-            <option value="Q025">Possui internet</option>
-            <option value="Q022">Celulares na residência</option>
-            <option value="Q024">Computadores na residência</option>
-            <option value="Q006">Renda</option>
-            <option value="TP_SEXO">Sexo</option>
-            <option value="TP_ESCOLA">Tipo de escola</option>
-          </select>
-          <div id="chart-container"></div>
-          <br><br>
-          <br><br>
-          <br><br>
-          <h2 id="boxplot-title"></h2>
-          <div id="boxplot-container"></div>
-          <br><br>
-          <br><br>
-          <br><br>
-        </section>
-  
-        <section class="heatmap-container">
-          <h2 id="heatmap-title">Quantidade de inscrições no ENEM por variáveis e regiões selecionadas</h2>
-          <div>
-            <label>Eixo X:</label>
-            <select id="variable1">
-              <option value="all">- Selecione uma variável -</option>
-              <option value="TP_COR_RACA">Cor ou Raça</option>
-              <option value="TP_ESTADO_CIVIL">Estado Civil</option>
-              <option value="TP_FAIXA_ETARIA">Faixa Etária</option>
-              <option value="TP_LOCALIZACAO_ESC">Localização da Escola</option>
-              <option value="Q025">Possui internet</option>
-              <option value="Q022">Celulares na residência</option>
-              <option value="Q024">Computadores na residência</option>
-              <option value="Q006">Renda</option>
-              <option value="TP_SEXO">Sexo</option>
-              <option value="TP_ESCOLA">Tipo de escola</option>
-            </select>
-          </div>
-          <div style="padding: 3px">
-            <label>Eixo Y:</label>
-            <select id="variable2">
-              <option value="all">- Selecione uma variável -</option>
-              <option value="TP_COR_RACA">Cor ou Raça</option>
-              <option value="TP_ESTADO_CIVIL">Estado Civil</option>
-              <option value="TP_FAIXA_ETARIA">Faixa Etária</option>
-              <option value="TP_LOCALIZACAO_ESC">Localização da Escola</option>
-              <option value="Q025">Possui internet</option>
-              <option value="Q022">Celulares na residência</option>
-              <option value="Q024">Computadores na residência</option>
-              <option value="Q006">Renda</option>
-              <option value="TP_SEXO">Sexo</option>
-              <option value="TP_ESCOLA">Tipo de escola</option>
-            </select>
-          </div>
-  
-          <div id="heatmaps">
-            <div class="heatmap-wrapper">
-              <h3>2019</h3>
-              <svg id="heatmap2019"></svg>
-            </div>
-            <div class="heatmap-wrapper">
-              <h3>2020</h3>
-              <svg id="heatmap2020"></svg>
-            </div>
-          </div>
-          <div id="colorbar">
-            <svg id="colorbar"></svg>
-          </div>
-        </section>
-      </div>
-    </div>
-  </main>
 
-  <script type="module" src="script.js"></script>
+        <h2 id="boxplot-title"></h2>
+        <div id="boxplot-container"></div>
+    </main>
+
+    <script type="module" src="script.js"></script>
 
 </body>
+
 </html>

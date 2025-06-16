@@ -64,8 +64,8 @@ function updateColorbar(colorscale) {
         .text("Quantidade de Inscrições");    
 }
 
-export function updateHeatMap(regions, data2019, data2020) {
-    const years = [2019, 2020];
+export async function updateHeatMap(regions) {
+    const years = [2019, 2020, 2021, 2022, 2023];
 
     // Obtém por meio do select do HTML as variáveis dos eixos
     let selected1 = document.getElementById("variable1").value;
@@ -80,88 +80,95 @@ export function updateHeatMap(regions, data2019, data2020) {
     const width = fullWidth - marginHeatmap.left - marginHeatmap.right;
     const height = fullHeight - marginHeatmap.top - marginHeatmap.bottom;
 
+    console.log("Loading data: " + `data/data_graph2d/${selected1}-por-${selected2}.csv`);
+    const data = await d3.csv(`data/data_graph2d/${selected1}-por-${selected2}.csv`,
+        d => ({
+            ...d,
+            QTD: +d.QTD
+        }
+    ));
+
     // Filtra por região
-    const filteredData2019 = (regions.length === 0) ? data2019 : data2019.filter(d => regions.includes(d.MESORREGIAO));
-    const filteredData2020 = (regions.length === 0) ? data2020 : data2020.filter(d => regions.includes(d.MESORREGIAO));
-
-    // Armazena os dados para cada combinação de variáveis
-    let counts2019 = {};
-    filteredData2019.forEach(d => {
-        const variable1 = d[selected1];
-        const variable2 = d[selected2];
-        if (variable1 === "" || variable2 === "") return; // Ignora valores vazios
-        const key = `${variable1}-${variable2}`
-        counts2019[key] = (counts2019[key] || 0) + 1;
-    });
-
-    let counts2020 = {};
-    filteredData2020.forEach(d => {
-        const variable1 = d[selected1];
-        const variable2 = d[selected2];
-        if (variable1 === "" || variable2 === "") return; // Ignora valores vazios
-        const key = `${variable1}-${variable2}`
-        counts2020[key] = (counts2020[key] || 0) + 1;
-    });
-
-    // Define o domínio da escala de cores
-    let maxCount2019 = d3.max(Object.values(counts2019));
-    let maxCount2020 = d3.max(Object.values(counts2020));
-
-    const customBlues = t => d3.interpolateBlues(0.1 + 0.9 * t); // Removendo tons muito claros
-
-    const color = d3.scaleSequential()
-        .interpolator(customBlues)
-        .domain([0, d3.max(Object.values([maxCount2019, maxCount2020]))]);
+    const filteredData2019 = (regions.length === 0) ? data.filter(d => d.NU_ANO === "2019") : data.filter(d => regions.includes(d.SG_UF_PROVA)).filter(d => d.NU_ANO === "2019");
+    const filteredData2020 = (regions.length === 0) ? data.filter(d => d.NU_ANO === "2020") : data.filter(d => regions.includes(d.SG_UF_PROVA)).filter(d => d.NU_ANO === "2020");
+    const filteredData2021 = (regions.length === 0) ? data.filter(d => d.NU_ANO === "2021") : data.filter(d => regions.includes(d.SG_UF_PROVA)).filter(d => d.NU_ANO === "2021");
+    const filteredData2022 = (regions.length === 0) ? data.filter(d => d.NU_ANO === "2022") : data.filter(d => regions.includes(d.SG_UF_PROVA)).filter(d => d.NU_ANO === "2022");
+    const filteredData2023 = (regions.length === 0) ? data.filter(d => d.NU_ANO === "2023") : data.filter(d => regions.includes(d.SG_UF_PROVA)).filter(d => d.NU_ANO === "2023");
         
     // Bases de dados por anos
-    const filteredDataYears = {2019: filteredData2019, 2020: filteredData2020};
+    const filteredDataYears = {2019: filteredData2019, 2020: filteredData2020, 2021: filteredData2021, 2022: filteredData2022, 2023: filteredData2023};
 
-    // Cria o heatmaps
+    // Converte os valores para os rótulos correspondentes
+    const map1 = LOOKUP[selected1] || (d=>d);
+    const map2 = LOOKUP[selected2] || (d=>d);
+
+    let maxCounts = []
+    let graphData = {};
+
     years.forEach(year => {
         const cats1 = [...new Set(filteredDataYears[year].map(d => d[selected1]))].filter(d => d !== "").sort();
         const cats2 = [...new Set(filteredDataYears[year].map(d => d[selected2]))].filter(d => d !== "").sort();
 
-        // Converte os valores para os rótulos correspondentes
-        const map1 = LOOKUP[selected1] || (d=>d);
-        const map2 = LOOKUP[selected2] || (d=>d);
-
-        // Realiza as contagens para cada combinação de variáveis
-        const fullGrid = []
-        if (year === 2019) {
-            cats1.forEach(v1 => {
-                cats2.forEach(v2 => {
-                    const key = `${v1}-${v2}`;
-                    fullGrid.push({
-                        v1,
-                        v2,
-                        value: counts2019[key] || 0
-                    });
-                });
-            });
-        }
-        else if (year === 2020) {
-            cats1.forEach(v1 => {
-                cats2.forEach(v2 => {
-                    const key = `${v1}-${v2}`;
-                    fullGrid.push({
-                        v1,
-                        v2,
-                        value: counts2020[key] || 0
-                    });
-                });
-            });
-        }
-
-        //  Desenvolvimento do gráfico
-        const x = d3.scaleBand()
+        let x = d3.scaleBand()
             .domain(cats1)
             .range([0, width])
             .padding(0.05);
 
-        const y = d3.scaleBand()
+        let y = d3.scaleBand()
             .domain(cats2)
             .range([height, 0])
             .padding(0.05);
+
+        let fullGrid = {}
+
+        const allV1 = Array.from(new Set(filteredDataYears[year].map(d => d[selected1])));
+        const allV2 = Array.from(new Set(filteredDataYears[year].map(d => d[selected2])));
+
+        const fullGridMap = {};
+        allV1.forEach(v1 => {
+            allV2.forEach(v2 => {
+                const key = `${v1}-${v2}`;
+                fullGridMap[key] = {
+                    v1,
+                    v2,
+                    value: 0
+                };
+            });
+        });
+                
+        filteredDataYears[year].forEach(d => {
+            const v1 = d[selected1];
+            const v2 = d[selected2];
+            const key = `${v1}-${v2}`;
+
+            fullGridMap[key].value += d.QTD;
+        });
+
+        fullGrid = Object.values(fullGridMap);
+        
+        let maxValue = Math.max(...fullGrid.map(obj=> obj.value));
+        maxCounts.push(maxValue);
+
+        graphData[year] = {
+            x: x,
+            y: y,
+            fullGrid: fullGrid
+        }
+    })
+
+    // Define o domínio da escala de cores
+    const customBlues = t => d3.interpolateViridis(0 + 1*t) // 0.1 + 0.9 * t); // Removendo tons muito claros
+
+    const color = d3.scaleSequential()
+        .interpolator(customBlues)
+        .domain([0, d3.max(Object.values(maxCounts))]);
+
+    // Cria os heatmaps
+    years.forEach(year => {
+        //  Desenvolvimento do gráfico
+        let x = graphData[year].x;
+        let y = graphData[year].y;
+        let fullGrid = graphData[year].fullGrid;
 
         let svgHeatmap;
         if (year === 2019) {    
@@ -177,7 +184,27 @@ export function updateHeatMap(regions, data2019, data2020) {
                 .attr("height", "auto")
                 .attr("viewBox", `-50 0 ${fullWidth + 50} ${fullHeight}`)
                 .attr("preserveAspectRatio", "xMidYMid meet");
-
+        }
+        else if (year === 2021) {
+            svgHeatmap = d3.select("#heatmap2021")
+                .attr("width", "100%")
+                .attr("height", "auto")
+                .attr("viewBox", `-50 0 ${fullWidth + 50} ${fullHeight}`)
+                .attr("preserveAspectRatio", "xMidYMid meet");
+        }
+        else if (year === 2022) {
+            svgHeatmap = d3.select("#heatmap2022")
+                .attr("width", "100%")
+                .attr("height", "auto")
+                .attr("viewBox", `-50 0 ${fullWidth + 50} ${fullHeight}`)
+                .attr("preserveAspectRatio", "xMidYMid meet");
+        }
+        else if (year === 2023) {
+            svgHeatmap = d3.select("#heatmap2023")
+                .attr("width", "100%")
+                .attr("height", "auto")
+                .attr("viewBox", `-50 0 ${fullWidth + 50} ${fullHeight}`)
+                .attr("preserveAspectRatio", "xMidYMid meet");
         }
 
         svgHeatmap.selectAll("*").remove();
