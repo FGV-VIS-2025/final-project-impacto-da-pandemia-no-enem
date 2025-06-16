@@ -86,20 +86,7 @@ export const barsGroup = svg.append("g")
 export const tooltip = d3.select("body").append("div")
                                         .attr("class", "tooltip")
                                         .style("opacity", 0)
-                                        .style("position", "absolute");
-
-// Para o box plot
-export const containerBox = d3.select("#boxplot-container");
-export const widthBox = containerBox.node().getBoundingClientRect().width;
-export const heightBox = 400;
-
-export const svgBox = containerBox
-    .append("svg")
-    .attr("viewBox", `0 0 ${widthBox} ${heightBox}`)
-    .attr("preserveAspectRatio", "xMidYMid meet");
-
-export const yBox = d3.scaleLinear()
-    .range([heightBox - margin.top, margin.bottom]);    
+                                        .style("position", "absolute"); 
 
 export const containerFlow = d3.select("#flow-chart");
 export const widthFlow = containerFlow.node().getBoundingClientRect().width;
