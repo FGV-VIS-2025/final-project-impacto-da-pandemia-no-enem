@@ -678,8 +678,16 @@ html.dark-mode .segmented-control button.active {
   cursor: pointer;
 } */
 
+    .map-pane {
+        position: relative;
+        width: 35%;
+        height: 35%;
+        overflow: hidden;
+        justify-content: center;
+    }
+
 /*------Para as colunas------*/
-@media (min-width: 700px){
+@media (min-width: 7000px){
     .layout {
         display: flex;
         flex-direction: row;
