@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Impacto da Pandemia no ENEM</title>
+  <script>
+    (function () {
+      try {
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+          document.documentElement.classList.add('dark-mode');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <ul>
+        <li><a href="../index.html">Introdução</a></li>
+        <li><a href="project.html">Projeto Antigo</a></li>
+        <li><a href="../project.html">Projeto</a></li>
+        <li><a href="../map-bubbles.html">Mapa de Bolhas</a></li>
+        <li><a href="../authors.html">Autores</a></li>
+        <li><a href="https://github.com/FGV-VIS-2025/tarefa-4-impacto_da_pandemia_no_enem" target="_blank">GitHub</a></li>
+      </ul>
+      <select id="theme-select">
+        <option value="auto">🌗 Automático</option>
+        <option value="light">🌞 Claro</option>
+        <option value="dark">🌙 Escuro</option>
+      </select>  
+    </nav>
+  </header>
+
+  <main class="main-content">
+    <div class="layout">
+      <!-- Coluna esquerda fixa: Mapa -->
+      <div class="map-pane">
+        <h2>Minas Gerais por Mesorregiões</h2>
+        <h3>Selecione uma região para filtrar</h3>
+        <div id="map-container"></div>
+        <div id="control-panel">
+          <button id="reset-button">Remover Filtros</button>
+          <div id="selected-regions"></div>
+        </div>
+      </div>
+  
+      <!-- Coluna direita com gráficos e seções -->
+      <div class="charts-pane">
+        <section class="project-graphic">
+          <h2 id="barchart-title"></h2>
+          <select id="select-button">
+            <option value="all">- Selecione uma variável -</option>
+            <option value="TP_COR_RACA">Cor ou Raça</option>
+            <option value="TP_ESTADO_CIVIL">Estado Civíl</option>
+            <option value="TP_FAIXA_ETARIA">Faixa Etária</option>
+            <option value="TP_LOCALIZACAO_ESC">Localização da Escola</option>
+            <option value="Q025">Possui internet</option>
+            <option value="Q022">Celulares na residência</option>
+            <option value="Q024">Computadores na residência</option>
+            <option value="Q006">Renda</option>
+            <option value="TP_SEXO">Sexo</option>
+            <option value="TP_ESCOLA">Tipo de escola</option>
+          </select>
+          <div id="chart-container"></div>
+          <br><br>
+          <br><br>
+          <br><br>
+          <h2 id="boxplot-title"></h2>
+          <div id="boxplot-container"></div>
+          <br><br>
+          <br><br>
+          <br><br>
+        </section>
+  
+        <section class="heatmap-container">
+          <h2 id="heatmap-title">Quantidade de inscrições no ENEM por variáveis e regiões selecionadas</h2>
+          <div>
+            <label>Eixo X:</label>
+            <select id="variable1">
+              <option value="all">- Selecione uma variável -</option>
+              <option value="TP_COR_RACA">Cor ou Raça</option>
+              <option value="TP_ESTADO_CIVIL">Estado Civil</option>
+              <option value="TP_FAIXA_ETARIA">Faixa Etária</option>
+              <option value="TP_LOCALIZACAO_ESC">Localização da Escola</option>
+              <option value="Q025">Possui internet</option>
+              <option value="Q022">Celulares na residência</option>
+              <option value="Q024">Computadores na residência</option>
+              <option value="Q006">Renda</option>
+              <option value="TP_SEXO">Sexo</option>
+              <option value="TP_ESCOLA">Tipo de escola</option>
+            </select>
+          </div>
+          <div style="padding: 3px">
+            <label>Eixo Y:</label>
+            <select id="variable2">
+              <option value="all">- Selecione uma variável -</option>
+              <option value="TP_COR_RACA">Cor ou Raça</option>
+              <option value="TP_ESTADO_CIVIL">Estado Civil</option>
+              <option value="TP_FAIXA_ETARIA">Faixa Etária</option>
+              <option value="TP_LOCALIZACAO_ESC">Localização da Escola</option>
+              <option value="Q025">Possui internet</option>
+              <option value="Q022">Celulares na residência</option>
+              <option value="Q024">Computadores na residência</option>
+              <option value="Q006">Renda</option>
+              <option value="TP_SEXO">Sexo</option>
+              <option value="TP_ESCOLA">Tipo de escola</option>
+            </select>
+          </div>
+  
+          <div id="heatmaps">
+            <div class="heatmap-wrapper">
+              <h3>2019</h3>
+              <svg id="heatmap2019"></svg>
+            </div>
+            <div class="heatmap-wrapper">
+              <h3>2020</h3>
+              <svg id="heatmap2020"></svg>
+            </div>
+          </div>
+          <div id="colorbar">
+            <svg id="colorbar"></svg>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="script.js"></script>
+
+</body>
+</html>
