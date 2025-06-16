@@ -808,4 +808,47 @@ html.dark-mode .segmented-control button.active {
     text-align: center;
     margin: 20px;
 }
+/*----------------------------*/
 
+/* Para telas médias */
+@media (max-width: 768px) {
+    #legend {
+        max-width: 200px;
+        padding: 8px;
+    }
+    
+    .legend-text {
+        font-size: 12px;
+    }
+    
+    #legend span[style*="font-size: 12px"] {
+        font-size: 10px !important;
+    }
+}
+
+/* Para telas pequenas (celulares) */
+@media (max-width: 480px) {
+    #legend {
+        max-width: 150px;
+        padding: 5px;
+        bottom: 10px;
+        left: 10px;
+    }
+    
+    .legend-text {
+        font-size: 10px;
+    }
+    
+    #legend span[style*="font-size: 12px"] {
+        font-size: 8px !important;
+    }
+    
+    #legend strong {
+        font-size: 11px !important;
+    }
+    
+    #legend div[style*="width: 47px"] {
+        width: 35px !important;
+        height: 35px !important;
+    }
+}
