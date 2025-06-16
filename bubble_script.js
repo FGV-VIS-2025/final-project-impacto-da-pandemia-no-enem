@@ -77,7 +77,7 @@ Promise.all([
         }
         dadosNotas[item.ANO].push({
             UF: item.UF,
-            QUANTIDADE_PESSOAS: item.QTD,
+            QUANTIDADE_PESSOAS: item.INSCRICOES,
         });
     });
 

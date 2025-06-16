@@ -1,30 +1,28 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 import * as utils from "./utils.js";
-const {LOOKUP, width, height, margin, svg, y, barsGroup, tooltip} = utils;
+const {LOOKUP, width, height, margin, svg, x, y, barsGroup, tooltip} = utils;
 
 
-export function barCharts(regions = [], column = "all", data, filteredCategory) {
+// Atualiza o gráfico com base na região selecionada
+export function barCharts(regions = [], column = "all", filteredCategory, data2019, data2020) {
 
     let colorScale = d3.schemeTableau10; 
     svg.selectAll(".legend").remove(); 
         
     // Filtra os dados conforme a região 
-    const filteredData = (regions.length === 0) ? data : data.filter(d => regions.includes(d.UF));
+    const filteredData2019 = (regions.length === 0) ? data2019 : data2019.filter(d => regions.includes(d.MESORREGIAO));
+    const filteredData2020 = (regions.length === 0) ? data2020 : data2020.filter(d => regions.includes(d.MESORREGIAO));
 
-    const years = [...new Set(data.map(d => d.ANO))].sort();
-    const subscriptions = [];
-    const allCategories = [...new Set(data.map(d => d[column]))].sort();
+    const subscriptions = [
+        {year: "2019", total: filteredData2019.length},
+        {year: "2020", total: filteredData2020.length}
+    ];
 
-    years.forEach((year, idx) => {
-
-        let filteredYearData = filteredData.filter(d => d.ANO === year);
-        const obj = { ano: year, total: d3.sum(filteredYearData, d => +d.QTD) };
-
-        allCategories.forEach((category, index) => {
-            obj[column + index] = d3.sum(filteredYearData.filter(d => d[column] === category), d => +d.QTD);
-        });
-
-        subscriptions.push(obj);
+    const allCategories = [...new Set(data2019.map(d => d[column]))].sort();
+        
+    allCategories.forEach((category, index) => {
+        subscriptions[0][column + index] = filteredData2019.filter(d => d[column] === category).length;
+        subscriptions[1][column + index] = filteredData2020.filter(d => d[column] === category).length;
     });
     
     // Define as categorias que serão exibidas
@@ -37,13 +35,7 @@ export function barCharts(regions = [], column = "all", data, filteredCategory) 
             return d[column + index] || 0;
         }))
     );
-
     y.domain([0, maxValue]).nice();
-
-    const x = d3.scaleBand()
-        .domain(years)  
-        .range([margin.left, width - margin.right])
-        .padding(0.4);
 
     // Atualiza os eixos
     svg.selectAll(".y-axis").remove();
@@ -84,11 +76,10 @@ export function barCharts(regions = [], column = "all", data, filteredCategory) 
 
     // Atualiza as barras
     const barGroups = barsGroup.selectAll(".chart-container")
-    .data(subscriptions)
-    .join("g")
-    .attr("class", "chart-container")
-    .attr("transform", d => `translate(${x(d.ano)}, 0)`);
-
+        .data(subscriptions)
+        .join("g")
+        .attr("class", "chart-container")
+        .attr("transform", d => `translate(${x(d.year)}, 0)`);
 
     barGroups.selectAll("rect")
         .data(d => displayCategories.map(category => {
@@ -96,7 +87,7 @@ export function barCharts(regions = [], column = "all", data, filteredCategory) 
             return {
                 key: category,
                 value: d[column + index] || 0,
-                year: d.ano
+                year: d.year
             };
         }))
         .join("rect")
@@ -131,26 +122,26 @@ export function barCharts(regions = [], column = "all", data, filteredCategory) 
         })
         .on("click", function(event, d) {
             // Alterna o filtro: se já está filtrado, mostra tudo; senão, filtra
-            barCharts(regions, column, data, filteredCategory === d.key ? null : d.key);
+            barCharts(regions, column, filteredCategory === d.key ? null : d.key, data2019, data2020);
         });
 
     if (column && column !== "all"){
-        createLegend(colorScale, column, regions, allCategories, filteredCategory, data);
+        createLegend(colorScale, column, regions, allCategories, filteredCategory, data2019, data2020);
     }
 
     const title = d3.select("#barchart-title");
     if (regions.length === 0) {
-        title.text(" Quantidade de inscrições no ENEM no Brasil pela variável selecionada")
+        title.text(" Quantidade de inscrições no ENEM em Minas Gerais pela variável selecionada")
     }
     else if (regions.length === 1) {
-        title.text(" Quantidade de Inscrições no ENEM no estado selecionado pela variável selecionada")
+        title.text(" Quantidade de Inscrições no ENEM na região selecionada pela variável selecionada")
     }  
     else {
-        title.text(" Quantidade de Inscrições do ENEM nos estados selecionados pela variável selecionada")
+        title.text(" Quantidade de Inscrições do ENEM nas regiões selecionadas pela variável selecionada")
     }   
 }
 
-function createLegend(colorScale, column, regions, allCategories, currentFilter, data) {
+function createLegend(colorScale, column, regions, allCategories, currentFilter, data2019, data2020) {
     svg.selectAll(".legend").remove();
     
     const legend = svg.append("g")
@@ -178,7 +169,7 @@ function createLegend(colorScale, column, regions, allCategories, currentFilter,
             .text(LOOKUP[column][currentFilter]);
 
         legendGroup.on("click", function() {
-            barCharts(regions, column, data);
+            barCharts(regions, column, null, data2019, data2020);
         });
     } else {
         allCategories.forEach((category, i) => {
@@ -199,7 +190,7 @@ function createLegend(colorScale, column, regions, allCategories, currentFilter,
                 .text(LOOKUP[column][category]);
 
             legendGroup.on("click", function() {
-                barCharts(regions, column, data, category);
+                barCharts(regions, column, category, data2019, data2020);
             });
         });
     }

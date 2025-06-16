@@ -77,6 +77,11 @@ export const svg = container
     .attr("viewBox", `0 0 ${width} ${height}`)
     .attr("preserveAspectRatio", "xMidYMid meet");
 
+export const x = d3.scaleBand()
+    .domain(["2019", "2020"])
+    .range([margin.left, width - margin.right])
+    .padding(0.4);
+
 export const y = d3.scaleLinear()
     .range([height - margin.bottom, margin.top]);
 
