@@ -2,347 +2,161 @@
 <html lang="pt-BR">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Impacto da Pandemia no ENEM</title>
-  <script>
-    (function () {
-      try {
-        const savedTheme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Impacto da Pandemia no ENEM</title>
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-          document.documentElement.classList.add('dark-mode');
-        }
-      } catch (e) { }
-    })();
-  </script>
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://d3js.org/d3.v7.min.js"></script>
+                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                    document.documentElement.classList.add('dark-mode');
+                }
+            } catch (e) { }
+        })();
+    </script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 
 <body>
-  <header>
-    <nav class="navbar">
-      <ul>
-        <li><a href="index.html">Introdução</a></li>
-        <li><a href="old_project/project.html">Projeto Antigo</a></li>
-        <li><a href="project.html">Projeto</a></li>
-        <li><a href="map-bubbles.html">Mapa de Bolhas</a></li>
-        <li><a href="authors.html">Autores</a></li>
-        <li><a href="https://github.com/FGV-VIS-2025/final-project-impacto-da-pandemia-no-enem"
-            target="_blank">GitHub</a>
-        </li>
-      </ul>
-      <select id="theme-select">
-        <option value="auto">🌗 Automático</option>
-        <option value="light">🌞 Claro</option>
-        <option value="dark">🌙 Escuro</option>
-      </select>
-    </nav>
-  </header>
-
-  <main class="main-content">
-    <section class="about-text">
-      <h2>Introdução</h2>
-      <p>
-        A pandemia da COVID-19 teve efeitos profundos em diversos setores da sociedade,
-        incluindo a educação. O Exame Nacional do Ensino Médio (ENEM), uma das principais
-        formas de acesso ao ensino superior no Brasil, também foi impactado.
-      </p>
-      <p>
-        Mudanças nas datas de aplicação, adesão dos estudantes, desempenho nas provas e
-        questões de equidade educacional foram alguns dos desafios enfrentados durante os
-        anos de 2020 e 2021.
-      </p>
-      <p>
-        Este projeto busca analisar e visualizar dados do ENEM antes, durante e após a pandemia,
-        com o objetivo de entender melhor como o contexto sanitário afetou o exame e os
-        estudantes brasileiros. Para isso, projetamos uma série de visualizações interativas
-        que permitem explorar as diferenças entre os anos de 2019 e 2023 para todo o Brasil.
-      </p>
-
-      <h2>Metodologia</h2>
-      <p>
-        Para a realização deste projeto, foram utilizadas cinco bases de dados principais:
-        - Microdados do ENEM 2019: A fim de obter informações sobre a prova em um cenário pré-pandemia.
-        - Microdados do ENEM 2020 e 2021: Para analisar o impacto da pandemia na prova.
-        - Microdados do ENEM 2022 e 2023: Para comparar com os anos anteriores e observar possíveis recuperações.
-        Todos os conjuntos de dados foram disponibilizados pelo INEP e podem ser acessados
-        <a href="https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enem"
-          target="_blank">aqui</a>.
-      </p>
-      <p>
-        Além disso, é válido ressaltar que ambas as bases foram filtradas utilizando-se da biblioteca Pandas
-        para produzir multiplos dataframes que contém as informações necessárias para o desenvolvimento das
-        visualizações.
-      </p>
-      <p>
-        Para o desenvolvimento das visualizações, utilizamos a biblioteca D3.js, que é amplamente utilizada para
-        criar visualizações interativas.
-      </p>
-      <h2>Sobre as visualizações</h2>
-      <p>
-        Todas as visualizações desenvolvidas podem ser encontradas na aba "Projeto" e "Novo Projeto" do nosso site.
-        Como esse trabalho trata-se de uma sequência de um projeto anterior, a aba "Projeto" contém as visualizações
-        projetadas anteriormente visando somente o estado de Minas Gerais e os anos de 2019 e 2020. Enquanto isso,
-        a aba "Novo Projeto" contém as visualizações atualizadas, referindo-se ao Brasil inteiro e aos anos de 2019 a
-        2023.
-      </p>
-      <p>
-        A primeira visualização consiste em um mapa interativo do Brasil. O mapa está dividido em
-        estados. Ao clicar em um estado, todas as demais visualizações serão automaticamente filtradas
-        para que exibam somente os dados referentes àquele selecionado. Uma vez selecionados, caso o usuário deseje
-        voltar a visualizar dados do país inteiro, basta clicar no botão "Remover Filtros" no canto inferior esquerdo
-        do mapa.
-      </p>
-    </section>"
-
-    <div class="layout">
-      <!-- Coluna esquerda fixa: Mapa -->
-      <div map-containter style="display: flex; justify-content: center;">
-        <div class="map-pane">
-
-          <h2 id="map-title">Mapa do Brasil por Estados</h2>
-          <h3>Selecione um ou mais estados para filtrar</h3>
-          <div id="map-container"></div>
-          <div id="control-panel">
-            <button id="reset-button">Remover Filtros</button>
-            <div id="selected-regions"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Coluna direita com gráficos e seções -->
-      <div class="charts-pane">
-
-        <section class="about-text">
-          <p>
-            A segunda visualização consiste em um gráfico de barras que, a princípio, exibe a quantidade de inscrições
-            ocorridas
-            no Brasil entre 2019 e 2023. Próximo ao gráfico, há um botão que permite ao usuário selecionar uma
-            variável para ser visualizada. As variáveis disponíveis para seleção são:
-          <ul>
-            <li>Cor ou Raça</li>
-            <li>Estado civil</li>
-            <li>Faixa etária</li>
-            <li>Localização da escola</li>
-            <li>Possui internet</li>
-            <li>Celulares na residência</li>
-            <li>Computadores na residência</li>
-            <li>Renda</li>
-            <li>Sexo</li>
-            <li>Tipo de escola</li>
-          </ul>
-          Ao selecionar uma variável, o gráfico de barras será atualizado para exibir a quantidade de inscrições
-          ocorridas
-          entre 2019 e 2023 para cada categoria da variável selecionada, formando um gráfico de barras agrupadas. Também
-          é
-          possível visualizar somente uma categoria específica da variável selecionada. Para isso, basta clicar na barra
-          ou no ítem da legenda correspondente à categoria desejada.
-          <p>
-          <p>
-            Além disso, como mencionado anteriormente, o <a href="#map-title">mapa</a> interativo do Brasil permite que
-            o usuário foque suas
-            análises em apenas uma região específica do país.
-          </p>
-        </section>
-
-        <section class="project-graphic">
-          <h2 id="barchart-title"></h2>
-          <select id="select-button">
-            <option value=0>- Selecione uma variável -</option>
-            <option value=1>Cor ou Raça</option>
-            <option value=2>Estado Civíl</option>
-            <option value=3>Faixa Etária</option>
-            <option value=4>Localização da Escola</option>
-            <option value=5>Possui internet</option>
-            <option value=6>Celulares na residência</option>
-            <option value=7>Computadores na residência</option>
-            <option value=8>Renda</option>
-            <option value=9>Sexo</option>
-            <option value=10>Tipo de escola</option>
-          </select>
-
-          <div id="chart-container"></div>
-          <div id="flow-chart"></div>
-
-          <div class="segmented-control">
-            <button value=1 class="active">Faixas Unidas</button>
-            <button value=2>Faixas Separadas (prop. entre faixas)</button>
-            <button value=3>Faixas Separadas (prop. dentro da faixa)</button>
-          </div>
-        </section>
-
-        <section class="about-text">
-          <p>
-            A terceira visualização consiste em um heatmap. A princípio, o heatmap está vazio. O usuário poderá, então,
-            selecionar duas variáveis, uma para o eixo X e outra para o eixo Y, tendo acesso a análises cruzadas mais
-            detalhadas
-            para obter visões mais abrangentes. O heatmap passará a exibir a quantidade de inscrições ocorridas para
-            cada combinação
-            de variáveis selecionadas. As variáveis disponíveis para seleção são:
-          <ul>
-            <li>Cor ou Raça</li>
-            <li>Estado civil</li>
-            <li>Faixa etária</li>
-            <li>Localização da escola</li>
-            <li>Possui internet</li>
-            <li>Celulares na residência</li>
-            <li>Computadores na residência</li>
-            <li>Renda</li>
-            <li>Sexo</li>
-            <li>Tipo de escola</li>
-          </ul>
-          </p>
-          <p>
-            O heatmap também possui integração com o <a href="#map-title">mapa</a> do Brasil. Ao selecionar
-            qualquer região do mapa, o heatmap será atualizado para exibir somente os dados referentes àquela região.
-          </p>
-        </section>
-
-        <section class="heatmap-container">
-          <h2 id="heatmap-title">Quantidade de inscrições no ENEM por variáveis e regiões selecionadas</h2>
-          <div>
-            <label>Eixo X:</label>
-            <select id="variable1">
-              <option value="all">- Selecione uma variável -</option>
-              <option value="TP_COR_RACA">Cor ou Raça</option>
-              <option value="TP_ESTADO_CIVIL">Estado Civil</option>
-              <option value="TP_FAIXA_ETARIA">Faixa Etária</option>
-              <option value="TP_LOCALIZACAO_ESC">Localização da Escola</option>
-              <option value="Q025">Possui internet</option>
-              <option value="Q022">Celulares na residência</option>
-              <option value="Q024">Computadores na residência</option>
-              <option value="Q006">Renda</option>
-              <option value="TP_SEXO">Sexo</option>
-              <option value="TP_ESCOLA">Tipo de escola</option>
+    <header>
+        <nav class="navbar">
+            <ul>
+                <li><a href="index.html">Introdução</a></li>
+                <li><a href="old_project/project.html">Projeto Antigo</a></li>
+                <li><a href="project.html">Projeto</a></li>
+                <li><a href="map-bubbles.html">Mapa de Bolhas</a></li>
+                <li><a href="authors.html">Autores</a></li>
+                <li><a href="https://github.com/FGV-VIS-2025/final-project-impacto-da-pandemia-no-enem"
+                        target="_blank">GitHub</a>
+                </li>
+            </ul>
+            <select id="theme-select">
+                <option value="auto">🌗 Automático</option>
+                <option value="light">🌞 Claro</option>
+                <option value="dark">🌙 Escuro</option>
             </select>
-          </div>
-          <div style="padding: 3px">
-            <label>Eixo Y:</label>
-            <select id="variable2">
-              <option value="all">- Selecione uma variável -</option>
-              <option value="TP_COR_RACA">Cor ou Raça</option>
-              <option value="TP_ESTADO_CIVIL">Estado Civil</option>
-              <option value="TP_FAIXA_ETARIA">Faixa Etária</option>
-              <option value="TP_LOCALIZACAO_ESC">Localização da Escola</option>
-              <option value="Q025">Possui internet</option>
-              <option value="Q022">Celulares na residência</option>
-              <option value="Q024">Computadores na residência</option>
-              <option value="Q006">Renda</option>
-              <option value="TP_SEXO">Sexo</option>
-              <option value="TP_ESCOLA">Tipo de escola</option>
-            </select>
-          </div>
-          <div id="heatmaps">
-            <div class="heatmap-wrapper">
-              <h3>2019</h3>
-              <svg id="heatmap2019"></svg>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="layout">
+            <!-- Coluna esquerda fixa: Mapa -->
+            <div class="map-pane">
+                <h2>Mapa do Brasil por Estados</h2>
+                <h3>Selecione um ou mais estados para filtrar</h3>
+                <div id="map-container"></div>
+                <div id="control-panel">
+                    <button id="reset-button">Remover Filtros</button>
+                    <div id="selected-regions"></div>
+                </div>
             </div>
-            <div class="heatmap-wrapper">
-              <h3>2020</h3>
-              <svg id="heatmap2020"></svg>
+
+            <!-- Coluna direita com gráficos e seções -->
+            <div class="charts-pane">
+
+                <section class="project-graphic">
+                    <h2 id="barchart-title"></h2>
+                    <select id="select-button">
+                        <option value=0>- Selecione uma variável -</option>
+                        <option value=1>Cor ou Raça</option>
+                        <option value=2>Estado Civíl</option>
+                        <option value=3>Faixa Etária</option>
+                        <option value=4>Localização da Escola</option>
+                        <option value=5>Possui internet</option>
+                        <option value=6>Celulares na residência</option>
+                        <option value=7>Computadores na residência</option>
+                        <option value=8>Renda</option>
+                        <option value=9>Sexo</option>
+                        <option value=10>Tipo de escola</option>
+                    </select>
+
+                    <div id="chart-container"></div>
+                    <div id="flow-chart"></div>
+                    
+                    <div class="segmented-control">
+                      <button value= 1 class="active">Faixas Unidas</button>
+                      <button value= 2>Faixas Separadas (prop. entre faixas)</button>
+                      <button value= 3>Faixas Separadas (prop. dentro da faixa)</button>
+                    </div>
+                </section>
+
+                <br><br><br><br>
+
+                <section class="heatmap-container">
+
+                    <h2 id="heatmap-title">Quantidade de inscrições no ENEM por variáveis e regiões selecionadas</h2>
+                    <div>
+                        <label>Eixo X:</label>
+                        <select id="variable1">
+                            <option value="all">- Selecione uma variável -</option>
+                            <option value="TP_COR_RACA">Cor ou Raça</option>
+                            <option value="TP_ESTADO_CIVIL">Estado Civil</option>
+                            <option value="TP_FAIXA_ETARIA">Faixa Etária</option>
+                            <option value="TP_LOCALIZACAO_ESC">Localização da Escola</option>
+                            <option value="Q025">Possui internet</option>
+                            <option value="Q022">Celulares na residência</option>
+                            <option value="Q024">Computadores na residência</option>
+                            <option value="Q006">Renda</option>
+                            <option value="TP_SEXO">Sexo</option>
+                            <option value="TP_ESCOLA">Tipo de escola</option>
+                        </select>
+                    </div>
+                    <div style="padding: 3px">
+                        <label>Eixo Y:</label>
+                        <select id="variable2">
+                            <option value="all">- Selecione uma variável -</option>
+                            <option value="TP_COR_RACA">Cor ou Raça</option>
+                            <option value="TP_ESTADO_CIVIL">Estado Civil</option>
+                            <option value="TP_FAIXA_ETARIA">Faixa Etária</option>
+                            <option value="TP_LOCALIZACAO_ESC">Localização da Escola</option>
+                            <option value="Q025">Possui internet</option>
+                            <option value="Q022">Celulares na residência</option>
+                            <option value="Q024">Computadores na residência</option>
+                            <option value="Q006">Renda</option>
+                            <option value="TP_SEXO">Sexo</option>
+                            <option value="TP_ESCOLA">Tipo de escola</option>
+                        </select>
+                    </div>
+                    <div id="heatmaps">
+                        <div class="heatmap-wrapper">
+                            <h3>2019</h3>
+                            <svg id="heatmap2019"></svg>
+                        </div>
+                        <div class="heatmap-wrapper">
+                            <h3>2020</h3>
+                            <svg id="heatmap2020"></svg>
+                        </div>
+                    </div>
+                    <div id="colorbar">
+                        <svg id="colorbar"></svg>
+                    </div>
+                    <div id="heatmaps" , style="margin-top: -6rem">
+                        <div class="heatmap-wrapper">
+                            <h3>2021</h3>
+                            <svg id="heatmap2021"></svg>
+                        </div>
+                        <div class="heatmap-wrapper">
+                            <h3>2022</h3>
+                            <svg id="heatmap2022"></svg>
+                        </div>
+                        <div class="heatmap-wrapper">
+                            <h3>2023</h3>
+                            <svg id="heatmap2023"></svg>
+                        </div>
+                    </div>
+                </section>
             </div>
-          </div>
-          <div id="colorbar">
-            <svg id="colorbar"></svg>
-          </div>
-          <div id="heatmaps" , style="margin-top: -6rem">
-            <div class="heatmap-wrapper">
-              <h3>2021</h3>
-              <svg id="heatmap2021"></svg>
-            </div>
-            <div class="heatmap-wrapper">
-              <h3>2022</h3>
-              <svg id="heatmap2022"></svg>
-            </div>
-            <div class="heatmap-wrapper">
-              <h3>2023</h3>
-              <svg id="heatmap2023"></svg>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
-
-    <section class="about-text">
-      <p>
-        A terceira e última visualização consiste em um mapa de bolhas, que exibe a quantidade de
-        inscrições ocorridas em cada estado do Brasil. Ao passar o mouse sobre uma bolha, o usuário
-        poderá visualizar a quantidade de inscrições ocorridas naquele estado no ano selecionado.
-      </p>
-      <p>
-        Ao seu lado, há um boxplot de taxas de presença por município de cada estado brasileiro.
-        Por meio do mapa, é possível selecionar estados de modo que o boxplot só exibirá dados
-        para os estados selecionados.
-      </p>
-    </section>
-
-    <h2 style="text-align: center;">Quantidade de participantes do Enem no Brasil</h2>
-
-    <div id="tooltip-map" class="tooltip-map"></div>
-
-    <div id="controls">
-      <label for="yearSlider">Ano: <span id="selectedYear">2019</span></label><br>
-      <input type="range" id="yearSlider" min="2019" max="2023" step="1" value="2019">
-    </div>
-
-    <div style="text-align: center; margin-top: 10px;">
-      <button id="playButton">▶️ Play</button>
-    </div>
-
-    <!-- <div id="legend" , style="
-        position: absolute;
-        bottom: 20px;
-        left: 20px;
-        background-color: rgba(255, 255, 255, 0.8);
-        padding: 10px;
-        border-radius: 8px;
-        box-shadow: 0 0 5px rgba(0,0,0,0.3);
-    ">
-      <strong>Número de Inscrições:</strong><br>
-      <div style="display: flex; align-items: center; margin-top: 5px;">
-        <div style="width: 8px; height: 8px; background-color: steelblue; border-radius: 50%; margin-right: 5px;"></div>
-        <span style="font-size: 12px;">Muito Baixo (10k - 40k)</span>
-      </div>
-      <div style="display: flex; align-items: center; margin-top: 5px;">
-        <div style="width: 15px; height: 15px; background-color: steelblue; border-radius: 50%; margin-right: 5px;">
         </div>
-        <span style="font-size: 12px;">Baixo (60k - 90k)</span>
-      </div>
-      <div style="display: flex; align-items: center; margin-top: 5px;">
-        <div style="width: 25px; height: 25px; background-color: steelblue; border-radius: 50%; margin-right: 5px;">
-        </div>
-        <span style="font-size: 12px;">Médio (120k - 150k)</span>
-      </div>
-      <div style="display: flex; align-items: center; margin-top: 5px;">
-        <div style="width: 35px; height: 35px; background-color: steelblue; border-radius: 50%; margin-right: 5px;">
-        </div>
-        <span style="font-size: 12px;">Alto (300k - 400k)</span>
-      </div>
-      <div style="display: flex; align-items: center; margin-top: 5px;">
-        <div style="width: 50px; height: 50px; background-color: steelblue; border-radius: 50%; margin-right: 5px;">
-        </div>
-        <span style="font-size: 12px;">Muito Alto (540k - 800k)</span>
-      </div>
-    </div> -->
 
-    <div id="bubble-container">
-      <div id="mapa"></div>
-      <div id="graficos">
-        <div class="boxplot-container" id="boxplot-presenca">
-          <svg width="100%" height="90%"></svg>
-        </div>
-      </div>
-    </div>
+        <h2 id="boxplot-title"></h2>
+        <div id="boxplot-container"></div>
+    </main>
 
-    <script type="module" src="bubble_script.js"></script>
-
-    <div id="tooltip-boxplot" class="tooltip-boxplot"></div>
-  </main>
-
-  <script type="module" src="script.js"></script>
+    <script type="module" src="script.js"></script>
 
 </body>
 
