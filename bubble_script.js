@@ -458,28 +458,24 @@ Promise.all([
                 .attr("transform", `translate(${x(d.uf)},0)`);
 
             boxplotGroup.on("click", function(event) {
-                event.stopPropagation();
-                const clickedUF = d.uf;
-                
-                // Se já está selecionado, remove da seleção
-                if (selectedStates.includes(clickedUF)) {
-                    selectedStates = selectedStates.filter(uf => uf !== clickedUF);
-                    boxplotSelection = null;
-                } 
-                // Se não está selecionado, adiciona mantendo os existentes
-                else {
-                    selectedStates.push(clickedUF);
-                    boxplotSelection = clickedUF;
-                }
+                            event.stopPropagation();
+                            
+                            if (boxplotSelection === d.uf || selectedStates.length === 1) {
+                                boxplotSelection = null;
+                                selectedStates = []; 
+                            } else {
+                                boxplotSelection = d.uf;
+                                selectedStates = [d.uf];
+                            }
 
-                // Atualiza todo mundo
-                updateBoxplot(year);
-                mapaGroup.selectAll("path")
-                    .classed("selected", feature => selectedStates.includes(feature.properties.sigla))
-                    .transition().duration(300)
-                    .attr("stroke-width", feature => selectedStates.includes(feature.properties.sigla) ? 3 : 1);
-                updateBubbles(datasets[year]);
-            });
+                            // Atualiza todo mundo
+                            updateBoxplot(year);
+                            mapaGroup.selectAll("path")
+                                .classed("selected", feature => selectedStates.includes(feature.properties.sigla))
+                                .transition().duration(300)
+                                .attr("stroke-width", feature => selectedStates.includes(feature.properties.sigla) ? 3 : 1);
+                            updateBubbles(datasets[year]);
+                        });
 
             if (d.values.length === 1) {
                 // Caso especial para UFs com apenas 1 valor
