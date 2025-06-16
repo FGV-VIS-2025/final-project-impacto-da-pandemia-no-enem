@@ -540,7 +540,7 @@ html.dark-mode .x-label {
     height: auto;
     min-width: 400px;
     min-height: 400px;
-    margin: 0 auto;
+    margin: 0 -20px;
 }
 
 #colorbar {
