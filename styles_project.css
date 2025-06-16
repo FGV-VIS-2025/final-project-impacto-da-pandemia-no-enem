@@ -672,19 +672,39 @@ html.dark-mode .segmented-control button.active {
     color: white;
 }
 
-/* .overlay:hover {
-  stroke: black;
-  stroke-width: 2px;
-  cursor: pointer;
-} */
+.map-pane {
+    position: relative;
+    width: 35%;
+    height: 35%;
+    overflow: hidden;
+    justify-content: center;
+}
 
-    .map-pane {
-        position: relative;
-        width: 35%;
-        height: 35%;
-        overflow: hidden;
-        justify-content: center;
-    }
+.turn-page {
+    min-width: 300px;
+    margin-bottom: 100px;
+    display: inline-block;
+    padding: 15px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+    border-radius: 30px;
+    background-size: 400% 400%;
+    transition: transform 0.3s ease;
+    animation: pulsate 5s ease infinite;
+    background-image: linear-gradient(45deg, #19356a, #1e4570, #24627e, #2a7f91, #329ba5);
+}
+
+.turn-page:hover {
+    transform: scale(1.05);
+}
+
+@keyframes pulsate {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
 
 /*------Para as colunas------*/
 @media (min-width: 7000px){
