@@ -38,10 +38,22 @@ const width = 1300;
 const height = 900;
 
 // Projeção centrada no Brasil
+let center, scale, translate;
+
+if (window.innerWidth < 768) { 
+  center = [-54, -15];
+  scale = 1200;
+  translate = [width / 2, height / 2 - 30]; 
+} else {
+  center = [-54, -20];
+  scale = 1400;
+  translate = [width / 2, height / 2 - 65];
+}
+
 const projection = d3.geoMercator()
-    .center([-54, -15]) // centro aproximado do Brasil
-    .scale(1000)
-    .translate([width / 2, height / 2 - 65]);
+  .center(center)
+  .scale(scale)
+  .translate(translate);
 
 // Caminho geográfico
 const path = d3.geoPath().projection(projection);
@@ -221,10 +233,17 @@ Promise.all([
                 .style("visibility", "visible")
                 .text(`Estado: ${d.nome} (${d.uf})\nRegião: ${d.regiao}\nNº de inscrições: ${d.NUM_PARTICIPANTES.toLocaleString()}`);
             })
-            .on("mousemove", function (event) {
-                tooltip
-                .style("top", (event.pageY - 40) + "px")
-                .style("left", (event.pageX - 200) + "px");
+            .on("mousemove", function (event, d) {
+                if (d.regiao === "Sul") {
+                    tooltip
+                    .style("top", (event.pageY - 40) + "px")
+                    .style("left", (event.pageX + 20) + "px");
+                }
+                else {
+                    tooltip
+                    .style("top", (event.pageY - 40) + "px")
+                    .style("left", (event.pageX - 200) + "px");
+                }
             })
             .on("mouseout", function () {
                 tooltip.style("visibility", "hidden");
@@ -354,7 +373,7 @@ Promise.all([
         const svg = container.select("svg");
         svg.selectAll("*").remove();
         
-        const margin = { top: 40, right: 10, bottom: 150, left: 60 };
+        const margin = { top: 40, right: 10, bottom: 150, left: 0 };
         const containerWidth = container.node().getBoundingClientRect().width;
         //const containerHeight = container.node().getBoundingClientRect().height;
         const containerHeight = 540;
@@ -432,7 +451,7 @@ Promise.all([
         
         g.append("text")
             .attr("transform", "rotate(-90)")
-            .attr("y", -margin.left + 10)
+            .attr("y", -margin.left - 40)
             .attr("x", -height / 2)
             .attr("dy", "1em")
             .style("text-anchor", "middle")
