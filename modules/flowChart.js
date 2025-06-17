@@ -148,10 +148,38 @@ function flowChart_1(regions, data, filteredCategory) {
                .attr("y", margin.left / 2)
                .attr("text-anchor", "middle")
                .style("font-weight", "normal")
-               .text("Nº de Inscreições");
+               .text("Nº de Participantes");
     });
 
     const overlayWidth = 30;
+
+    svgFlow.selectAll("rect.click-overlay")
+        .data(nodes)
+        .enter()
+        .append("rect")
+        .attr("class", "click-overlay")
+        .attr("x", d => {
+            const i = years.indexOf(d.ano);
+            return i === 0 ? 0 : (xScale(years[i]) + xScale(years[i - 1])) / 2;
+        })
+        .attr("y", d => d.y0)
+        .attr("width", d => {
+            const i = years.indexOf(d.ano);
+            const left = i === 0 ? 0 : (xScale(years[i]) + xScale(years[i - 1])) / 2;
+            const right = i === years.length - 1 ? widthFlow : (xScale(years[i]) + xScale(years[i + 1])) / 2;
+            return right - left;
+        })
+        .attr("height", d => d.y1 - d.y0)
+        .style("fill", "transparent")
+        .on("click", function(event, d) {
+            if (filteredCategory === d.category) {
+                flowChart_1(regions, data, null);
+                barCharts(regions, data, null, 1);
+            } else {
+                flowChart_1(regions, data, d.category);
+                barCharts(regions, data, d.category, 1);
+            }
+        });
 
     svgFlow.selectAll("rect.overlay")
         .data(nodes)
@@ -167,11 +195,11 @@ function flowChart_1(regions, data, filteredCategory) {
             tooltip.transition().duration(200).style("opacity", 1);
 
             if (variable === "all") {
-                tooltip.html(`Ano: ${d.ano}<br>Inscrições: ${d3.format(",")(d.value)}`)
+                tooltip.html(`Ano: ${d.ano}<br>Participantes: ${d3.format(",")(d.value)}`)
                     .style("left", (event.pageX + 10) + "px")
                     .style("top", (event.pageY - 28) + "px");
             } else {
-                tooltip.html(`Ano: ${d.ano}<br>Categoria: ${LOOKUP[variable][d.category]}<br>Inscrições: ${d3.format(",")(d.value)}`)
+                tooltip.html(`Ano: ${d.ano}<br>Categoria: ${LOOKUP[variable][d.category]}<br>Participantes: ${d3.format(",")(d.value)}`)
                     .style("left", (event.pageX + 10) + "px")
                     .style("top", (event.pageY - 28) + "px");
             }
@@ -182,25 +210,7 @@ function flowChart_1(regions, data, filteredCategory) {
         })
         .on("mouseout", function() {
             tooltip.transition().duration(500).style("opacity", 0);
-        })
-        .on("click", function(event, d) {
-            if (filteredCategory === d.category) {
-                flowChart_1(regions, data, null);
-                barCharts(regions, data, null, 1);
-            } else {
-                flowChart_1(regions, data, d.category);
-                barCharts(regions, data, d.category, 1);
-            }
         });
-
-    // Título do gráfico
-    // svgFlow.append("text")
-    //     .attr("x", widthFlow / 2)
-    //     .attr("y", -20)
-    //     .attr("text-anchor", "middle")
-    //     .style("font-size", "16px")
-    //     .style("font-weight", "bold")
-    //     .text("Inscrições no ENEM por Categoria e Ano");
 }
 
 function flowChart_2(regions, data, filteredCategory, type) {
@@ -351,10 +361,38 @@ function flowChart_2(regions, data, filteredCategory, type) {
                .attr("y", margin.left / 2)
                .attr("text-anchor", "middle")
                .style("font-weight", "normal")
-               .text("Nº de Inscreições");       
+               .text("Nº de Participantes");       
     });
     
     const overlayWidth = 30;
+
+    svgFlow.selectAll("rect.click-overlay")
+        .data(nodes)
+        .enter()
+        .append("rect")
+        .attr("class", "click-overlay")
+        .attr("x", d => {
+            const i = years.indexOf(d.ano);
+            return i === 0 ? 0 : (xScale(years[i]) + xScale(years[i - 1])) / 2;
+        })
+        .attr("y", d => d.y0)
+        .attr("width", d => {
+            const i = years.indexOf(d.ano);
+            const left = i === 0 ? 0 : (xScale(years[i]) + xScale(years[i - 1])) / 2;
+            const right = i === years.length - 1 ? widthFlow : (xScale(years[i]) + xScale(years[i + 1])) / 2;
+            return right - left;
+        })
+        .attr("height", d => d.y1 - d.y0)
+        .style("fill", "transparent")
+        .on("click", function(event, d) {
+            if (filteredCategory === d.category) {
+                flowChart_2(regions, data, null, type);
+                barCharts(regions, data, null, type);
+            } else {
+                flowChart_2(regions, data, d.category, type);
+                barCharts(regions, data, d.category, type);
+            }
+        });
 
     svgFlow.selectAll("rect.overlay")
         .data(nodes)
@@ -368,40 +406,21 @@ function flowChart_2(regions, data, filteredCategory, type) {
         .style("fill", "transparent")
         .on("mouseover", function(event, d) {
             tooltip.transition().duration(200).style("opacity", 1);
-            
             if (variable === "all") {
-                tooltip.html(`Ano: ${d.ano}<br>Inscrições: ${d3.format(",")(d.value)}`)
+                tooltip.html(`Ano: ${d.ano}<br>Participantes: ${d3.format(",")(d.value)}`)
                     .style("left", (event.pageX + 10) + "px")
                     .style("top", (event.pageY - 28) + "px");
             } else {
-                tooltip.html(`Ano: ${d.ano}<br>Categoria: ${LOOKUP[variable][d.category]}<br>Inscrições: ${d3.format(",")(d.value)}`)
+                tooltip.html(`Ano: ${d.ano}<br>Categoria: ${LOOKUP[variable][d.category]}<br>Participantes: ${d3.format(",")(d.value)}`)
                     .style("left", (event.pageX + 10) + "px")
                     .style("top", (event.pageY - 28) + "px");
             }
         })
         .on("mousemove", function(event) {
             tooltip.style("left", (event.pageX + 10) + "px")
-                    .style("top", (event.pageY - 28) + "px");
+                .style("top", (event.pageY - 28) + "px");
         })
         .on("mouseout", function() {
             tooltip.transition().duration(500).style("opacity", 0);
-        })
-        .on("click", function(event, d) {
-            if (filteredCategory === d.category) {
-                flowChart_2(regions, data, null);
-                barCharts(regions, data, null, 2);
-            } else {
-                flowChart_2(regions, data, d.category);
-                barCharts(regions, data, d.category, 2);
-            }
         });
-
-    // // Título do gráfico
-    // svgFlow.append("text")
-    //     .attr("x", widthFlow / 2)
-    //     .attr("y", -20)
-    //     .attr("text-anchor", "middle")
-    //     .style("font-size", "16px")
-    //     .style("font-weight", "bold")
-    //     .text("Inscrições no ENEM por Categoria e Ano");
 }

@@ -621,6 +621,7 @@ html.dark-mode .x-label {
 /*---------------------------*/
 
 #flow-chart {
+    cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -633,10 +634,6 @@ html.dark-mode .x-label {
 
 html.dark-mode .paralel-axis {
     stroke: #ccc;
-}
-
-.overlay {
-    cursor: pointer;
 }
 
 svg { 
