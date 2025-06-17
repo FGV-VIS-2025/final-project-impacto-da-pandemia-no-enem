@@ -45,65 +45,83 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("variable2").selectedIndex = 0;
 });
 
-
-const selectX = document.getElementById('variable1');
-const selectY = document.getElementById('variable2');
+const selectX = document.getElementById("variable1");
+const selectY = document.getElementById("variable2");
 
 const options = [
-    { value: "TP_COR_RACA", text: "Cor ou Raça" },
-    { value: "TP_ESTADO_CIVIL", text: "Estado Civil" },
-    { value: "TP_FAIXA_ETARIA", text: "Faixa Etária" },
-    { value: "TP_LOCALIZACAO_ESC", text: "Localização da Escola" },
-    { value: "Q025", text: "Possui internet" },
-    { value: "Q022", text: "Celulares na residência" },
-    { value: "Q024", text: "Computadores na residência" },
-    { value: "Q006", text: "Renda" },
-    { value: "TP_SEXO", text: "Sexo" },
-    { value: "TP_ESCOLA", text: "Tipo de escola" }
+  { value: "TP_COR_RACA", text: "Cor ou Raça" },
+  { value: "TP_ESTADO_CIVIL", text: "Estado Civil" },
+  { value: "TP_FAIXA_ETARIA", text: "Faixa Etária" },
+  { value: "Q025", text: "Possui internet" },
+  { value: "Q022", text: "Celulares na residência" },
+  { value: "Q024", text: "Computadores na residência" },
+  { value: "Q006", text: "Renda" },
+  { value: "TP_SEXO", text: "Sexo" },
+  { value: "TP_ESCOLA", text: "Tipo de escola" }
 ];
 
-let hasRemovedAllX = false;
-let hasRemovedAllY = false;
+function removePlaceholderFromSelect(selectElement) {
+  const placeholder = selectElement.querySelector('option[value="all"]');
+  if (placeholder) {
+    selectElement.removeChild(placeholder);
+  }
+}
 
-function updateOptions(selectedValue, targetSelect, originSelectId) {
-    const currentValue = targetSelect.value;
-
-    // Remove todas as opções do target select
-    targetSelect.innerHTML = '';
-
+function updateOptions(changedSelect, targetSelect) {
+    const currentTargetValue = targetSelect.value;
+    targetSelect.innerHTML = "";
+    
+    if (currentTargetValue === "all") {
+        const placeholderOption = document.createElement("option");
+        placeholderOption.value = "all";
+        placeholderOption.textContent = "- Selecione uma variável -";
+        placeholderOption.disabled = true;
+        placeholderOption.selected = true;
+        targetSelect.appendChild(placeholderOption);
+    }
+    
     options.forEach(opt => {
-        if (opt.value !== selectedValue) {
-            const optionElement = document.createElement('option');
+        if (opt.value !== changedSelect.value) {
+            const optionElement = document.createElement("option");
             optionElement.value = opt.value;
             optionElement.textContent = opt.text;
             targetSelect.appendChild(optionElement);
         }
     });
-
-    // Se ainda for uma seleção válida, mantém o valor atual
-    if (targetSelect.querySelector(`option[value="${currentValue}"]`)) {
-        targetSelect.value = currentValue;
-    }
-}
-
-function removeInitialOption(selectElement, flagName) {
-    if (!window[flagName] && selectElement.value !== "all") {
-        const allOption = selectElement.querySelector('option[value="all"]');
-        if (allOption) {
-            selectElement.removeChild(allOption);
+    
+    if (currentTargetValue !== "all") {
+        const preservedOption = targetSelect.querySelector(`option[value="${currentTargetValue}"]`);
+        if (preservedOption) {
+            targetSelect.value = currentTargetValue;
         }
-        window[flagName] = true; // marca que já foi removido
     }
 }
 
-selectX.addEventListener('change', () => {
-    removeInitialOption(selectX, 'hasRemovedAllX');
-    updateOptions(selectX.value, selectY, 'variable1');
+function removePlaceholderIfBothValid() {
+  if (selectX.value !== "all" && selectY.value !== "all") {
+    const phX = selectX.querySelector('option[value="all"]');
+    if (phX) { selectX.removeChild(phX); }
+    const phY = selectY.querySelector('option[value="all"]');
+    if (phY) { selectY.removeChild(phY); }
+  }
+}
+
+selectX.addEventListener("change", () => {
+  if (selectX.value !== "all") {
+    removePlaceholderFromSelect(selectX);
+  }
+  
+  updateOptions(selectX, selectY);
+  removePlaceholderIfBothValid();
 });
 
-selectY.addEventListener('change', () => {
-    removeInitialOption(selectY, 'hasRemovedAllY');
-    updateOptions(selectY.value, selectX, 'variable2');
+selectY.addEventListener("change", () => {
+  if (selectY.value !== "all") {
+    removePlaceholderFromSelect(selectY);
+  }
+
+  updateOptions(selectY, selectX);
+  removePlaceholderIfBothValid();
 });
 
 // Inicializa com a opção "- Selecione uma variável -"
@@ -126,11 +144,10 @@ Promise.all([
     d3.csv("./data/data_graph/count_TP_ESCOLA.csv"),
     d3.csv("./data/data_graph/count_TP_ESTADO_CIVIL.csv"),
     d3.csv("./data/data_graph/count_TP_FAIXA_ETARIA.csv"),
-    d3.csv("./data/data_graph/count_TP_LOCALIZACAO_ESC.csv"),
     d3.csv("./data/data_graph/count_TP_SEXO.csv")
-]).then(([dataUF, dataQ6, dataQ22, dataQ24, dataQ25, dataCR, dataEsc, dataEC, dataFE, dataLoc, dataSexo]) => {
+]).then(([dataUF, dataQ6, dataQ22, dataQ24, dataQ25, dataCR, dataEsc, dataEC, dataFE, dataSexo]) => {
 
-    const dataList = [dataUF, dataCR, dataEC, dataFE, dataLoc, dataQ25, dataQ22, dataQ24, dataQ6, dataSexo, dataEsc];
+    const dataList = [dataUF, dataCR, dataEC, dataFE, dataQ25, dataQ22, dataQ24, dataQ6, dataSexo, dataEsc];
 
     flowChart([], dataUF);
     barCharts([], dataUF);
