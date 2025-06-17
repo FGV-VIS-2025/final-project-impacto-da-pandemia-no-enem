@@ -74,7 +74,7 @@ selecionar duas variáveis, uma para o eixo X e outra para o eixo Y, tendo acess
 detalhadas
 para obter visões mais abrangentes.
 
-A terceira e última visualização consiste em um mapa de bolhas, que exibe a quantidade de
+A quarta e última visualização consiste em um mapa de bolhas, que exibe a quantidade de
 inscrições ocorridas em cada estado do Brasil. Ao passar o mouse sobre uma bolha, o usuário
 poderá visualizar a quantidade de inscrições ocorridas naquele estado no ano selecionado.
 
