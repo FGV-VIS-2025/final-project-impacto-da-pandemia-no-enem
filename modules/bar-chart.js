@@ -143,7 +143,11 @@ export function barCharts(regions, data, filteredCategory, flowType=1) {
 
     const title = d3.select("#barchart-title");
     if (regions.length === 0) {
+        if (column === "all") {
+            title.text(" Quantidade de inscrições no ENEM no Brasil por ano")
+        } else {
         title.text(" Quantidade de inscrições no ENEM no Brasil pela variável selecionada")
+        }
     }
     else if (regions.length === 1) {
         title.text(" Quantidade de Inscrições no ENEM no estado selecionado pela variável selecionada")
