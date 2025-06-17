@@ -2,7 +2,7 @@
 
 Esse trabalho é uma continuação de https://github.com/FGV-VIS-2025/tarefa-4-impacto_da_pandemia_no_enem
 
-# Tarefa 4 de Visualização de Dados
+# Projeto Final de Visualização de Dados
 ## O Impacto da Pandemia no ENEM
 ### Autores
 - Guilherme Moreira Castilho: @GuilhermeCastilho02
@@ -24,7 +24,7 @@ acerca da dificuldade de acesso a uma rotina eficiente de preparação para a pr
 dispositivos para utilizá-la.
 
 Tendo isso em vista, decidimos analisar as diferenças entre os alunos que realizaram o ENEM nas edições de 2019 (contexto pré-
-pandemia) a 2023 (contexto durante e pós pandemia). As análises são focadas somente ao estado de Minas Gerais, principalmente por conta das limitações das ferramentas utilizadas para o trabalho.
+pandemia) a 2023 (contexto durante e pós pandemia). Inicialmente as análises foram focadas no estado de Minas Gerais, porém, resolvemos também expandir as análises para todos os estados do Brasil.
 
 ### Bases de Dados
 Para o desenvolvimento do trabalho foram utilizados os microdados do ENEM, o qual possui dados de todas as inscrições para a
@@ -100,11 +100,12 @@ Guilherme Moreira Castilho - @GuilhermeCastilho02
 - Ajustes de dimensões - 4h
 
 Samuel Corrêa Lima - @samullima
-- Implementação da página do Mapa de Bolhas - 1h
+- Implementação da página do Mapa de Bolhas - 4h
 - Criação do Mapa de Bolhas e suas interatividades - 12h
-- Criação do gráfico de boxplots e suas interatividades - 10h
+- Criação do gráfico de boxplots e suas interatividades - 12h
+- Criação dos botões de Play, Remover Filtros e Scroll - 4h
 - README - 1h
-- Edição dos vídeos - 40min
+- Edição dos vídeos - 1h
 
 Além disso, todos os membros contribuíram para otimizações em todas as partes do trabalho, tais como deixar as visualizações mais 
 fluídas, alterações estéticas, etc. Todos também auxiliaram na solução de problemas pontuais em todas as visualizações.
