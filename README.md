@@ -104,6 +104,7 @@ Samuel Corrêa Lima - @samullima
 - Criação do Mapa de Bolhas e suas interatividades - 12h
 - Criação do gráfico de boxplots e suas interatividades - 10h
 - README - 1h
+- Edição dos vídeos - 40min
 
 Além disso, todos os membros contribuíram para otimizações em todas as partes do trabalho, tais como deixar as visualizações mais 
 fluídas, alterações estéticas, etc. Todos também auxiliaram na solução de problemas pontuais em todas as visualizações.
