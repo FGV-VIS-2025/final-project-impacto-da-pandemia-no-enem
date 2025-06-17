@@ -1,43 +1,85 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Impacto da Pandemia no ENEM</title>
-  <script>
-    (function () {
-      try {
-        const savedTheme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Impacto da Pandemia no ENEM</title>
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-          document.documentElement.classList.add('dark-mode');
+                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                    document.documentElement.classList.add('dark-mode');
+                }
+            } catch (e) { }
+        })();
+
+        // Função para aplicar o tema
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else if (theme === 'light') {
+                document.documentElement.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            } else { // auto
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (prefersDark) {
+                    document.documentElement.classList.add('dark-mode');
+                } else {
+                    document.documentElement.classList.remove('dark-mode');
+                }
+                localStorage.removeItem('theme');
+            }
         }
-      } catch (e) {}
-    })();
-  </script>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <header>
-    <nav class="navbar">
-      <ul>
-        <li><a href="index.html">Introdução</a></li>
-        <li><a href="old_project/project.html">Projeto Antigo</a></li>
-        <li><a href="project.html">Projeto</a></li>
-        <li><a href="map-bubbles.html">Mapa de Bolhas</a></li>
-        <li><a href="authors.html">Autores</a></li>
-        <li><a href="https://github.com/FGV-VIS-2025/final-project-impacto-da-pandemia-no-enem" target="_blank">GitHub</a></li>
-      </ul>
-      <select id="theme-select">
-        <option value="auto">🌗 Automático</option>
-        <option value="light">🌞 Claro</option>
-        <option value="dark">🌙 Escuro</option>
-      </select> 
-    </nav>
-  </header>
 
-  <main class="main-content">
+        // Configurar o seletor de tema
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeSelect = document.getElementById('theme-select');
+            if (themeSelect) {
+                // Definir o valor inicial do seletor
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme) {
+                    themeSelect.value = savedTheme;
+                } else {
+                    themeSelect.value = 'auto';
+                }
+
+                // Adicionar listener para mudanças
+                themeSelect.addEventListener('change', (e) => {
+                    applyTheme(e.target.value);
+                });
+            }
+        });
+    </script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+    <header>
+        <nav class="navbar">
+            <ul>
+                <li><a href="index.html">Introdução</a></li>
+                <li><a href="old_project/project.html">Projeto Antigo</a></li>
+                <li><a href="project.html">Projeto</a></li>
+                <li><a href="map-bubbles.html">Mapa de Bolhas</a></li>
+                <li><a href="authors.html">Autores</a></li>
+                <li><a href="https://github.com/FGV-VIS-2025/final-project-impacto-da-pandemia-no-enem"
+                        target="_blank">GitHub</a>
+                </li>
+            </ul>
+            <select id="theme-select">
+                <option value="auto">🌗 Automático</option>
+                <option value="light">🌞 Claro</option>
+                <option value="dark">🌙 Escuro</option>
+            </select>
+        </nav>
+    </header>
+    <main class="main-content">
     <h1 class="main-title">Autores do Projeto</h1>
     <p class="subtitle">Somos alunos de Ciência de Dados e Inteligência Artificial da FGV EMAp. <br>
         Este projeto foi desenvolvido por nós como trabalho da disciplina de Visualização de Dados.</p>
@@ -75,7 +117,5 @@
     </section>
   </main>
 
-  <script type="module" src="script.js"></script>
 </body>
 </html>
-
