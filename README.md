@@ -113,5 +113,8 @@ Ferramentas de inteligência artificial foram utilizadas majoritariamente para p
 realizar certas ações utilizando a linguagem JavaScript e a biblioteca D3 como qual parâmetro deveria ser alterarado para 
 selecionar uma paleta de cores para um gráfico, ou para encontrar rapidamente erros de implementação.
 
-### Link do vídeo
+### Link do Trailer
+https://www.youtube.com/watch?v=Hp8IscAVqS0
+
+### Link da apresentação
 https://www.youtube.com/watch?v=j326YK2LVbY
