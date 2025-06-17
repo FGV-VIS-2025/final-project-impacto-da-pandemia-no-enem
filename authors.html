@@ -6,16 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Impacto da Pandemia no ENEM</title>
     <script>
-        (function () {
-            try {
-                const savedTheme = localStorage.getItem('theme');
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-                    document.documentElement.classList.add('dark-mode');
-                }
-            } catch (e) { }
-        })();
+        // Função para verificar a preferência do sistema
+        function getSystemTheme() {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
 
         // Função para aplicar o tema
         function applyTheme(theme) {
@@ -26,8 +20,8 @@
                 document.documentElement.classList.remove('dark-mode');
                 localStorage.setItem('theme', 'light');
             } else { // auto
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (prefersDark) {
+                const systemTheme = getSystemTheme();
+                if (systemTheme === 'dark') {
                     document.documentElement.classList.add('dark-mode');
                 } else {
                     document.documentElement.classList.remove('dark-mode');
@@ -36,23 +30,31 @@
             }
         }
 
-        // Configurar o seletor de tema
+        // Inicialização do tema
         document.addEventListener('DOMContentLoaded', () => {
             const themeSelect = document.getElementById('theme-select');
-            if (themeSelect) {
-                // Definir o valor inicial do seletor
-                const savedTheme = localStorage.getItem('theme');
-                if (savedTheme) {
-                    themeSelect.value = savedTheme;
-                } else {
-                    themeSelect.value = 'auto';
-                }
+            
+            // Aplicar tema inicial
+            const savedTheme = localStorage.getItem('theme');
+            const initialTheme = savedTheme || 'auto';
+            applyTheme(initialTheme);
 
-                // Adicionar listener para mudanças
+            // Configurar o seletor
+            if (themeSelect) {
+                themeSelect.value = initialTheme;
+                
+                // Listener para mudanças
                 themeSelect.addEventListener('change', (e) => {
                     applyTheme(e.target.value);
                 });
             }
+
+            // Ouvir mudanças na preferência do sistema (apenas para modo auto)
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('theme')) { // Só muda se estiver no modo auto
+                    applyTheme('auto');
+                }
+            });
         });
     </script>
     <link rel="stylesheet" href="styles.css">
